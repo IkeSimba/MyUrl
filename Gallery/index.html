@@ -77,6 +77,26 @@
       color: #362a2b;
     }
 
+    /* Fullscreen button styling */
+    #fullscreen-btn {
+      position: absolute;
+      bottom: 2rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: transparent;
+      border: 2px solid #e5ebf3;
+      color: #e5ebf3;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    #fullscreen-btn:hover {
+      background-color: #e5ebf3;
+      color: #362a2b;
+    }
+
     /* Responsive styles */
     @media (min-width: 640px) and (min-height: 640px) {
       .slide .content {
@@ -109,12 +129,14 @@
   <div class="buttons">
     <button id="prev"><i class="fas fa-arrow-left"></i></button>
     <button id="next"><i class="fas fa-arrow-right"></i></button>
+    <button id="fullscreen-btn">Fullscreen</button> <!-- Fullscreen button -->
   </div>
 
   <script>
     const slides = document.querySelectorAll(".slide");
     const nextButton = document.getElementById("next");
     const prevButton = document.getElementById("prev");
+    const fullscreenButton = document.getElementById('fullscreen-btn');
     const auto = true;
     const intervalTime = 300000;
     let slideInterval;
@@ -162,9 +184,8 @@
     });
 
     // Fullscreen toggle functionality
-    const slider = document.getElementById('slider');
-
-    slider.addEventListener('click', () => {
+    fullscreenButton.addEventListener('click', () => {
+      const slider = document.getElementById('slider');
       if (!document.fullscreenElement) {
         slider.requestFullscreen().catch(err => {
           console.error(`Error attempting to enable full-screen mode: ${err.message}`);
