@@ -161,18 +161,29 @@
       }
     });
 
-    // Fullscreen toggle functionality
+    // Fullscreen toggle functionality with iPad support
     const slider = document.getElementById('slider');
 
-    slider.addEventListener('click', () => {
+    const toggleFullscreen = () => {
+      // For modern browsers
       if (!document.fullscreenElement) {
-        slider.requestFullscreen().catch(err => {
-          console.error(`Error attempting to enable full-screen mode: ${err.message}`);
-        });
+        if (slider.requestFullscreen) {
+          slider.requestFullscreen();
+        } else if (slider.webkitRequestFullscreen) { // iOS Safari
+          slider.webkitRequestFullscreen();
+        }
       } else {
-        document.exitFullscreen();
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) { // iOS Safari
+          document.webkitExitFullscreen();
+        }
       }
-    });
+    };
+
+    // Add event listeners for both touch and click
+    slider.addEventListener('touchstart', toggleFullscreen); // iPad touch
+    slider.addEventListener('click', toggleFullscreen); // Fallback for click events
   </script>
 </body>
 
