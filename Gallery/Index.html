@@ -83,10 +83,12 @@
             cursor: pointer;
             border: 2px solid transparent;
             transition: border 0.3s ease;
+            opacity: 0.75; /* Slightly transparent */
         }
 
-        .thumbnail:hover {
-            border: 2px solid #e5ebf3; /* Highlight border on hover */
+        .thumbnail.selected {
+            border: 2px solid #e5ebf3; /* Highlight border color */
+            opacity: 1; /* Fully opaque when selected */
         }
 
         .toggle-thumbnails {
@@ -211,12 +213,12 @@
                 slide.style.backgroundSize = "contain"; // Scale the image to fit within the slide
                 slidesContainer.appendChild(slide);
 
-                // Create a thumbnail button for each image
-                const thumbnailButton = document.createElement('img');
-                thumbnailButton.src = image;
-                thumbnailButton.className = 'thumbnail';
-                thumbnailButton.onclick = () => showSlide(index);
-                thumbnailContainer.appendChild(thumbnailButton);
+                // Create thumbnail for each image
+                const thumbnail = document.createElement('img');
+                thumbnail.src = image;
+                thumbnail.className = 'thumbnail';
+                thumbnail.onclick = () => showSlide(index); // Show the corresponding slide on click
+                thumbnailContainer.appendChild(thumbnail);
             });
 
             if (auto) {
@@ -227,27 +229,33 @@
         const nextSlide = () => {
             const current = document.querySelector(".current");
             current.classList.remove("current");
-
-            // Increment the current index randomly
             currentIndex = (currentIndex + 1) % randomOrder.length; // Get next index in randomized order
             slidesContainer.children[randomOrder[currentIndex]].classList.add("current");
+            updateThumbnailHighlight();
         };
 
         const prevSlide = () => {
             const current = document.querySelector(".current");
             current.classList.remove("current");
-
-            // Decrement the current index to show the last opened photo
             currentIndex = (currentIndex - 1 + randomOrder.length) % randomOrder.length; // Get previous index in randomized order
             slidesContainer.children[randomOrder[currentIndex]].classList.add("current");
+            updateThumbnailHighlight();
         };
 
-        // Function to show the slide corresponding to the thumbnail clicked
+        // Show slide based on the thumbnail clicked
         const showSlide = (index) => {
             const current = document.querySelector(".current");
             current.classList.remove("current");
             currentIndex = index; // Update current index
             slidesContainer.children[randomOrder[currentIndex]].classList.add("current");
+            updateThumbnailHighlight(); // Highlight the corresponding thumbnail
+        };
+
+        // Update thumbnail highlighting
+        const updateThumbnailHighlight = () => {
+            const thumbnails = document.querySelectorAll(".thumbnail");
+            thumbnails.forEach(thumbnail => thumbnail.classList.remove("selected")); // Remove highlight from all thumbnails
+            thumbnails[randomOrder[currentIndex]].classList.add("selected"); // Highlight the current thumbnail
         };
 
         // Toggle thumbnail visibility
@@ -268,6 +276,7 @@
             const current = document.querySelector(".current");
             current.classList.remove("current");
             slidesContainer.children[randomOrder[currentIndex]].classList.add("current"); // Show the first slide of the new random order
+            updateThumbnailHighlight(); // Highlight the first thumbnail
         };
 
         nextButton.addEventListener("click", () => {
@@ -289,7 +298,6 @@
         // Initialize the image slider
         initSlider();
     </script>
-
 </body>
 
 </html>
