@@ -3,8 +3,9 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Full-Screen Responsive Image Slider</title>
+  <title>CodePen - Full-Screen Responsive Image Slider</title>
   <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
+  <link rel="stylesheet" href="./style.css">
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap");
 
@@ -35,40 +36,13 @@
       height: 100%;
       opacity: 0;
       transition: opacity 0.4s ease-in-out;
-      cursor: pointer;
-      background-color: #000; /* Fallback background color */
     }
 
     .slide.current {
       opacity: 1;
     }
 
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover; /* Make images cover the slide */
-    }
-
-    /* Define your images here */
-    .slide:nth-child(1) img { background: url("1.png"); }
-    .slide:nth-child(2) img { background: url("2.png"); }
-    .slide:nth-child(3) img { background: url("3.jpeg"); }
-    .slide:nth-child(4) img { background: url("IMG_1279.jpeg"); }
-    .slide:nth-child(5) img { background: url("IMG_3913.jpeg"); }
-    .slide:nth-child(6) img { background: url("IMG_3986.jpeg"); }
-    .slide:nth-child(7) img { background: url("IMG_4109.jpeg"); }
-    .slide:nth-child(8) img { background: url("IMG_1146.jpeg"); }
-    .slide:nth-child(9) img { background: url("IMG_1145.jpeg"); }
-    .slide:nth-child(10) img { background: url("IMG_1144.jpeg"); }
-    .slide:nth-child(11) img { background: url("IMG_5063.jpeg"); }
-    .slide:nth-child(12) img { background: url("IMG_2998.jpeg"); }
-    .slide:nth-child(13) img { background: url("IMG_2999.jpeg"); }
-    .slide:nth-child(14) img { background: url("IMG_3913.jpeg"); }
-    .slide:nth-child(15) img { background: url("IMG_1148.jpeg"); }
-    .slide:nth-child(16) img { background: url("IMG_4353.jpeg"); }
-    .slide:nth-child(17) img { background: url("IMG_4352.jpeg"); }
-    .slide:nth-child(18) img { background: url("IMG_4351.jpeg"); }
-
+    /* Removed individual slide background styles; they will be set in JavaScript */
     .buttons button#prev {
       position: absolute;
       top: 50%;
@@ -118,37 +92,78 @@
 
 <body>
   <div class="slider">
-    <div class="slide current"><img src="1.png" alt="Slide 1"></div>
-    <div class="slide"><img src="2.png" alt="Slide 2"></div>
-    <div class="slide"><img src="3.jpeg" alt="Slide 3"></div>
-    <div class="slide"><img src="IMG_1279.jpeg" alt="Slide 4"></div>
-    <div class="slide"><img src="IMG_3913.jpeg" alt="Slide 5"></div>
-    <div class="slide"><img src="IMG_3986.jpeg" alt="Slide 6"></div>
-    <div class="slide"><img src="IMG_4109.jpeg" alt="Slide 7"></div>
-    <div class="slide"><img src="IMG_1146.jpeg" alt="Slide 8"></div>
-    <div class="slide"><img src="IMG_1145.jpeg" alt="Slide 9"></div>
-    <div class="slide"><img src="IMG_1144.jpeg" alt="Slide 10"></div>
-    <div class="slide"><img src="IMG_5063.jpeg" alt="Slide 11"></div>
-    <div class="slide"><img src="IMG_2998.jpeg" alt="Slide 12"></div>
-    <div class="slide"><img src="IMG_2999.jpeg" alt="Slide 13"></div>
-    <div class="slide"><img src="IMG_3913.jpeg" alt="Slide 14"></div>
-    <div class="slide"><img src="IMG_1148.jpeg" alt="Slide 15"></div>
-    <div class="slide"><img src="IMG_4353.jpeg" alt="Slide 16"></div>
-    <div class="slide"><img src="IMG_4352.jpeg" alt="Slide 17"></div>
-    <div class="slide"><img src="IMG_4351.jpeg" alt="Slide 18"></div>
+    <div class="slide current"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
   </div>
   <div class="buttons">
     <button id="prev"><i class="fas fa-arrow-left"></i></button>
     <button id="next"><i class="fas fa-arrow-right"></i></button>
   </div>
-
+  
   <script>
     const slides = document.querySelectorAll(".slide");
     const nextButton = document.getElementById("next");
     const prevButton = document.getElementById("prev");
     const auto = true;
-    const intervalTime = 3000; // Reduced for quicker demo
+    const intervalTime = 300000;
     let slideInterval;
+
+    // Array of image URLs
+    const images = [
+      "1.png",
+      "2.png",
+      "3.jpeg",
+      "IMG_1279.jpeg",
+      "IMG_3913.jpeg",
+      "IMG_3986.jpeg",
+      "IMG_4109.jpeg",
+      "IMG_1146.jpeg",
+      "IMG_1145.jpeg",
+      "IMG_1144.jpeg",
+      "IMG_5063.jpeg",
+      "IMG_2998.jpeg",
+      "IMG_2999.jpeg",
+      "IMG_3913.jpeg",
+      "IMG_1148.jpeg",
+      "IMG_4353.jpeg",
+      "IMG_4352.jpeg",
+      "IMG_4351.jpeg"
+    ];
+
+    // Shuffle the images array
+    const shuffleArray = (array) => {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    };
+
+    // Randomize images
+    shuffleArray(images);
+
+    // Set the background of each slide to the corresponding image and scale it
+    slides.forEach((slide, index) => {
+      slide.style.backgroundImage = `url("${images[index]}")`;
+      slide.style.backgroundRepeat = "no-repeat";
+      slide.style.backgroundPosition = "center";
+      slide.style.backgroundSize = "contain"; // Scale the image to fit within the slide
+    });
 
     const nextSlide = () => {
       const current = document.querySelector(".current");
@@ -170,42 +185,27 @@
       }
     };
 
-    const enterFullscreen = (element) => {
-      if (element.requestFullscreen) {
-        element.requestFullscreen();
-      } else if (element.mozRequestFullScreen) { // Firefox
-        element.mozRequestFullScreen();
-      } else if (element.webkitRequestFullscreen) { // Chrome, Safari and Opera
-        element.webkitRequestFullscreen();
-      } else if (element.msRequestFullscreen) { // IE/Edge
-        element.msRequestFullscreen();
+    nextButton.addEventListener("click", () => {
+      nextSlide();
+      if (auto) {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(nextSlide, intervalTime);
       }
-    };
-
-    const exitFullscreen = () => {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.mozCancelFullScreen) { // Firefox
-        document.mozCancelFullScreen();
-      } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) { // IE/Edge
-        document.msExitFullscreen();
+    });
+    
+    prevButton.addEventListener("click", () => {
+      prevSlide();
+      if (auto) {
+        clearInterval(slideInterval);
+        slideInterval = setInterval(nextSlide, intervalTime);
       }
-    };
+    });
 
-    slides.forEach((slide) => {
-      slide.addEventListener("click", () => {
-        const img = slide.querySelector("img");
-        const fullscreenImg = document.createElement("img");
-        fullscreenImg.src = img.src;
-        fullscreenImg.style.width = "100vw";
-        fullscreenImg.style.height = "100vh";
-        fullscreenImg.style.objectFit = "contain"; // Adjust to fit in fullscreen
-        fullscreenImg.style.position = "fixed";
-        fullscreenImg.style.top = "0";
-        fullscreenImg.style.left = "0";
-        fullscreenImg.style.zIndex = "9999";
+    if (auto) {
+      slideInterval = setInterval(nextSlide, intervalTime);
+    }
+  </script>
 
-        // Clear existing fullscreen images if any
-        const existing
+</body>
+
+</html>
