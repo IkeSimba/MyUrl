@@ -160,21 +160,25 @@
         const nextSlide = () => {
             const current = document.querySelector(".current");
             current.classList.remove("current");
-            if (current.nextElementSibling) {
-                current.nextElementSibling.classList.add("current");
-            } else {
-                slidesContainer.firstElementChild.classList.add("current");
-            }
+
+            // Get all slide elements
+            const slides = Array.from(slidesContainer.children);
+            let nextSlideIndex;
+
+            // Randomly select a slide that is not the current one
+            do {
+                nextSlideIndex = Math.floor(Math.random() * slides.length);
+            } while (slides[nextSlideIndex] === current);
+
+            slides[nextSlideIndex].classList.add("current");
         };
 
         const prevSlide = () => {
             const current = document.querySelector(".current");
             current.classList.remove("current");
-            if (current.previousElementSibling) {
-                current.previousElementSibling.classList.add("current");
-            } else {
-                slidesContainer.lastElementChild.classList.add("current");
-            }
+            const slides = Array.from(slidesContainer.children);
+            const prevSlideIndex = (slides.indexOf(current) - 1 + slides.length) % slides.length;
+            slides[prevSlideIndex].classList.add("current");
         };
 
         nextButton.addEventListener("click", () => {
