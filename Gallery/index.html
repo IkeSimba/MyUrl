@@ -3,114 +3,222 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>Full-Screen Responsive Image Slider</title>
+  <title>CodePen - Full-Screen Responsive Image Slider</title>
   <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
   <link rel="stylesheet" href="./style.css">
-  <style>
-    @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap");
+<style>
+  @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap");
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-    body {
-      font-family: "Lexend", sans-serif;
-      background-color: #362a2b;
-      color: #e5ebf3;
-    }
+body {
+  font-family: "Lexend", sans-serif;
+  background-color: #362a2b;
+  color: #e5ebf3;
+}
 
-    .slider {
-      position: relative;
-      width: 100%; /* Scale to the block's width */
-      height: 100%; /* Scale to the block's height */
-      overflow: hidden;
-    }
+.slider {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
 
-    .slide {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%; /* Full width of the block */
-      height: 100%; /* Full height of the block */
-      opacity: 0;
-      transition: opacity 0.4s ease-in-out;
-      object-fit: contain; /* Adjust image size while preserving aspect ratio */
-    }
+.slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
 
-    .slide.current {
-      opacity: 1;
-    }
+.slide.current {
+  opacity: 1;
+}
 
-    /* Define background images */
-    .slide:nth-child(1) { background: url("1.png") no-repeat center center / contain; }
-    .slide:nth-child(2) { background: url("2.png") no-repeat center center / contain; }
-    .slide:nth-child(3) { background: url("3.jpeg") no-repeat center center / contain; }
-    .slide:nth-child(4) { background: url("IMG_1279.jpeg") no-repeat center center / contain; }
-    /* Add more slide backgrounds as needed */
 
-    .buttons button#prev {
-      position: absolute;
-      top: 50%;
-      left: 1rem;
-    }
+.slide:first-child {
+  background: url("1.png") no-repeat
+    center top/cover;
+}
 
-    .buttons button#next {
-      position: absolute;
-      top: 50%;
-      right: 1rem;
-    }
+.slide:nth-child(2) {
+  background: url("2.png") no-repeat
+    center top/cover;
+}
 
-    .buttons button {
-      border: 2px solid #e5ebf3;
-      background-color: transparent;
-      color: #e5ebf3;
-      cursor: pointer;
-      padding: 13px 15px;
-      border-radius: 50%;
-      outline: none;
-    }
+.slide:nth-child(3) {
+  background: url("3.jpeg") no-repeat
+    center top/cover;
+}
 
-    .buttons button:hover {
-      background-color: #e5ebf3;
-      color: #362a2b;
-    }
+.slide:nth-child(4) {
+  background: url("IMG_1279.jpeg") no-repeat
+    center top/cover;
 
-    /* Responsive styles */
-    @media (min-width: 640px) and (min-height: 640px) {
-      .slide .content {
-        bottom: 70px;
-        left: -600px;
-        width: 600px;
-        padding: 2rem;
-        line-height: 1.6;
-      }
+}
 
-      .slide .content h1 {
-        font-size: 2rem;
-      }
+.slide:nth-child(5) {
+  background: url("IMG_3913.jpeg") no-repeat
+    center top/cover;
 
-      .slide.current .content {
-        transform: translateX(600px);
-      }
-    }
-  </style>
+}
+
+.slide:nth-child(6) {
+  background: url("IMG_3986.jpeg") no-repeat
+    center top/cover;
+}
+
+.slide:nth-child(7) {
+  background: url("IMG_4109.jpeg") no-repeat
+    center top/cover;
+
+}
+
+.slide:nth-child(8) {
+  background: url("IMG_1146.jpeg") no-repeat
+    center top/cover;
+
+}
+
+.slide:nth-child(9) {
+  background: url("IMG_1145.jpeg") no-repeat
+    center top/cover;
+
+}
+
+.slide:nth-child(10) {
+  background: url("IMG_1144.jpeg") no-repeat
+    center top/cover;
+
+}
+
+  .slide:nth-child(11) {
+  background: url("IMG_5063.jpeg") no-repeat
+    center top/cover;
+
+}
+  
+.slide:nth-child(12) {
+  background: url("IMG_2998.jpeg") no-repeat
+    center top/cover;
+
+}
+
+.slide:nth-child(13) {
+  background: url("IMG_2999.jpeg") no-repeat
+    center top/cover;
+
+}
+
+.slide:nth-child(14) {
+  background: url("IMG_3913.jpeg") no-repeat
+    center top/cover;
+
+}
+
+.slide:nth-child(15) {
+  background: url("IMG_1148.jpeg") no-repeat
+    center top/cover;
+
+}
+  .slide:nth-child(16) {
+  background: url("IMG_4353.jpeg") no-repeat
+    center top/cover;
+
+}
+  .slide:nth-child(17) {
+  background: url("IMG_4352.jpeg") no-repeat
+    center top/cover;
+
+}
+  .slide:nth-child(18) {
+  background: url("IMG_4351.jpeg") no-repeat
+    center top/cover;
+
+}
+
+.buttons button#prev {
+  position: absolute;
+  top: 50%;
+  left: 1rem;
+}
+
+.buttons button#next {
+  position: absolute;
+  top: 50%;
+  right: 1rem;
+}
+
+.buttons button {
+  border: 2px solid #e5ebf3;
+  background-color: transparent;
+  color: #e5ebf3;
+  cursor: pointer;
+  padding: 13px 15px;
+  border-radius: 50%;
+  outline: none;
+}
+
+.buttons button:hover {
+  background-color: #e5ebf3;
+  color: #362a2b;
+}
+
+@media (min-width: 640px) and (min-height: 640px) {
+  .slide .content {
+    bottom: 70px;
+    left: -600px;
+    width: 600px;
+    padding: 2rem;
+    line-height: 1.6;
+  }
+
+  .slide .content h1 {
+    font-size: 2rem;
+  }
+
+  .slide.current .content {
+    transform: translateX(600px);
+  }
+}
+</style>
 </head>
 
 <body>
-  <div class="slider" id="slider">
+  <!-- partial:index.partial.html -->
+  <div class="slider">
     <div class="slide current"></div>
     <div class="slide"></div>
     <div class="slide"></div>
     <div class="slide"></div>
-    <!-- Add more slides here -->
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+    <div class="slide"></div>
+
   </div>
   <div class="buttons">
     <button id="prev"><i class="fas fa-arrow-left"></i></button>
     <button id="next"><i class="fas fa-arrow-right"></i></button>
   </div>
-
+  <!-- partial -->
   <script>
     const slides = document.querySelectorAll(".slide");
     const nextButton = document.getElementById("next");
@@ -119,7 +227,6 @@
     const intervalTime = 300000;
     let slideInterval;
 
-    // Slide navigation functions
     const nextSlide = () => {
       const current = document.querySelector(".current");
       current.classList.remove("current");
@@ -140,11 +247,6 @@
       }
     };
 
-    // Auto slide functionality
-    if (auto) {
-      slideInterval = setInterval(nextSlide, intervalTime);
-    }
-
     nextButton.addEventListener("click", () => {
       nextSlide();
       if (auto) {
@@ -152,7 +254,6 @@
         slideInterval = setInterval(nextSlide, intervalTime);
       }
     });
-
     prevButton.addEventListener("click", () => {
       prevSlide();
       if (auto) {
@@ -161,30 +262,12 @@
       }
     });
 
-    // Fullscreen toggle functionality with iPad support
-    const slider = document.getElementById('slider');
+    if (auto) {
+      slideInterval = setInterval(nextSlide, intervalTime);
+    }
 
-    const toggleFullscreen = () => {
-      // For modern browsers
-      if (!document.fullscreenElement) {
-        if (slider.requestFullscreen) {
-          slider.requestFullscreen();
-        } else if (slider.webkitRequestFullscreen) { // iOS Safari
-          slider.webkitRequestFullscreen();
-        }
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.webkitExitFullscreen) { // iOS Safari
-          document.webkitExitFullscreen();
-        }
-      }
-    };
-
-    // Add event listeners for both touch and click
-    slider.addEventListener('touchstart', toggleFullscreen); // iPad touch
-    slider.addEventListener('click', toggleFullscreen); // Fallback for click events
   </script>
+
 </body>
 
 </html>
