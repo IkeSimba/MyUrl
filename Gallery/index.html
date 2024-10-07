@@ -5,7 +5,6 @@
   <meta charset="UTF-8">
   <title>Full-Screen Responsive Image Slider</title>
   <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
-  <link rel="stylesheet" href="./style.css">
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap");
 
@@ -36,13 +35,13 @@
       height: 100%;
       opacity: 0;
       transition: opacity 0.4s ease-in-out;
+      cursor: pointer; /* Change cursor to pointer */
     }
 
     .slide.current {
       opacity: 1;
     }
 
-    /* Background images */
     .slide:first-child {
       background: url("1.png") no-repeat center top/cover;
     }
@@ -55,7 +54,6 @@
       background: url("3.jpeg") no-repeat center top/cover;
     }
 
-    /* Additional slides */
     .slide:nth-child(4) {
       background: url("IMG_1279.jpeg") no-repeat center top/cover;
     }
@@ -184,20 +182,17 @@
     <div class="slide"></div>
     <div class="slide"></div>
   </div>
-  
   <div class="buttons">
     <button id="prev"><i class="fas fa-arrow-left"></i></button>
     <button id="next"><i class="fas fa-arrow-right"></i></button>
-    <button id="fullscreen"><i class="fas fa-expand"></i></button>
   </div>
-  
+
   <script>
     const slides = document.querySelectorAll(".slide");
     const nextButton = document.getElementById("next");
     const prevButton = document.getElementById("prev");
-    const fullscreenButton = document.getElementById("fullscreen");
     const auto = true;
-    const intervalTime = 3000; // Change to 3000 for 3 seconds
+    const intervalTime = 3000; // Reduced for quicker demo
     let slideInterval;
 
     const nextSlide = () => {
@@ -220,15 +215,40 @@
       }
     };
 
-    const toggleFullscreen = () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
+    const enterFullscreen = (element) => {
+      if (element.requestFullscreen) {
+        element.requestFullscreen();
+      } else if (element.mozRequestFullScreen) { // Firefox
+        element.mozRequestFullScreen();
+      } else if (element.webkitRequestFullscreen) { // Chrome, Safari and Opera
+        element.webkitRequestFullscreen();
+      } else if (element.msRequestFullscreen) { // IE/Edge
+        element.msRequestFullscreen();
       }
     };
+
+    const exitFullscreen = () => {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.mozCancelFullScreen) { // Firefox
+        document.mozCancelFullScreen();
+      } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) { // IE/Edge
+        document.msExitFullscreen();
+      }
+    };
+
+    slides.forEach((slide) => {
+      slide.addEventListener("click", () => {
+        const isFullscreen = document.fullscreenElement;
+        if (isFullscreen) {
+          exitFullscreen();
+        } else {
+          enterFullscreen(slide);
+        }
+      });
+    });
 
     nextButton.addEventListener("click", () => {
       nextSlide();
@@ -245,13 +265,11 @@
       }
     });
 
-    fullscreenButton.addEventListener("click", toggleFullscreen);
-
     if (auto) {
       slideInterval = setInterval(nextSlide, intervalTime);
     }
-
   </script>
+
 </body>
 
 </html>
