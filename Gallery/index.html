@@ -35,84 +35,39 @@
       height: 100%;
       opacity: 0;
       transition: opacity 0.4s ease-in-out;
-      cursor: pointer; /* Change cursor to pointer */
+      cursor: pointer;
+      background-color: #000; /* Fallback background color */
     }
 
     .slide.current {
       opacity: 1;
     }
 
-    .slide:first-child {
-      background: url("1.png") no-repeat center top/cover;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* Make images cover the slide */
     }
 
-    .slide:nth-child(2) {
-      background: url("2.png") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(3) {
-      background: url("3.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(4) {
-      background: url("IMG_1279.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(5) {
-      background: url("IMG_3913.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(6) {
-      background: url("IMG_3986.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(7) {
-      background: url("IMG_4109.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(8) {
-      background: url("IMG_1146.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(9) {
-      background: url("IMG_1145.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(10) {
-      background: url("IMG_1144.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(11) {
-      background: url("IMG_5063.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(12) {
-      background: url("IMG_2998.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(13) {
-      background: url("IMG_2999.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(14) {
-      background: url("IMG_3913.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(15) {
-      background: url("IMG_1148.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(16) {
-      background: url("IMG_4353.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(17) {
-      background: url("IMG_4352.jpeg") no-repeat center top/cover;
-    }
-
-    .slide:nth-child(18) {
-      background: url("IMG_4351.jpeg") no-repeat center top/cover;
-    }
+    /* Define your images here */
+    .slide:nth-child(1) img { background: url("1.png"); }
+    .slide:nth-child(2) img { background: url("2.png"); }
+    .slide:nth-child(3) img { background: url("3.jpeg"); }
+    .slide:nth-child(4) img { background: url("IMG_1279.jpeg"); }
+    .slide:nth-child(5) img { background: url("IMG_3913.jpeg"); }
+    .slide:nth-child(6) img { background: url("IMG_3986.jpeg"); }
+    .slide:nth-child(7) img { background: url("IMG_4109.jpeg"); }
+    .slide:nth-child(8) img { background: url("IMG_1146.jpeg"); }
+    .slide:nth-child(9) img { background: url("IMG_1145.jpeg"); }
+    .slide:nth-child(10) img { background: url("IMG_1144.jpeg"); }
+    .slide:nth-child(11) img { background: url("IMG_5063.jpeg"); }
+    .slide:nth-child(12) img { background: url("IMG_2998.jpeg"); }
+    .slide:nth-child(13) img { background: url("IMG_2999.jpeg"); }
+    .slide:nth-child(14) img { background: url("IMG_3913.jpeg"); }
+    .slide:nth-child(15) img { background: url("IMG_1148.jpeg"); }
+    .slide:nth-child(16) img { background: url("IMG_4353.jpeg"); }
+    .slide:nth-child(17) img { background: url("IMG_4352.jpeg"); }
+    .slide:nth-child(18) img { background: url("IMG_4351.jpeg"); }
 
     .buttons button#prev {
       position: absolute;
@@ -163,24 +118,24 @@
 
 <body>
   <div class="slider">
-    <div class="slide current"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
-    <div class="slide"></div>
+    <div class="slide current"><img src="1.png" alt="Slide 1"></div>
+    <div class="slide"><img src="2.png" alt="Slide 2"></div>
+    <div class="slide"><img src="3.jpeg" alt="Slide 3"></div>
+    <div class="slide"><img src="IMG_1279.jpeg" alt="Slide 4"></div>
+    <div class="slide"><img src="IMG_3913.jpeg" alt="Slide 5"></div>
+    <div class="slide"><img src="IMG_3986.jpeg" alt="Slide 6"></div>
+    <div class="slide"><img src="IMG_4109.jpeg" alt="Slide 7"></div>
+    <div class="slide"><img src="IMG_1146.jpeg" alt="Slide 8"></div>
+    <div class="slide"><img src="IMG_1145.jpeg" alt="Slide 9"></div>
+    <div class="slide"><img src="IMG_1144.jpeg" alt="Slide 10"></div>
+    <div class="slide"><img src="IMG_5063.jpeg" alt="Slide 11"></div>
+    <div class="slide"><img src="IMG_2998.jpeg" alt="Slide 12"></div>
+    <div class="slide"><img src="IMG_2999.jpeg" alt="Slide 13"></div>
+    <div class="slide"><img src="IMG_3913.jpeg" alt="Slide 14"></div>
+    <div class="slide"><img src="IMG_1148.jpeg" alt="Slide 15"></div>
+    <div class="slide"><img src="IMG_4353.jpeg" alt="Slide 16"></div>
+    <div class="slide"><img src="IMG_4352.jpeg" alt="Slide 17"></div>
+    <div class="slide"><img src="IMG_4351.jpeg" alt="Slide 18"></div>
   </div>
   <div class="buttons">
     <button id="prev"><i class="fas fa-arrow-left"></i></button>
@@ -241,35 +196,16 @@
 
     slides.forEach((slide) => {
       slide.addEventListener("click", () => {
-        const isFullscreen = document.fullscreenElement;
-        if (isFullscreen) {
-          exitFullscreen();
-        } else {
-          enterFullscreen(slide);
-        }
-      });
-    });
+        const img = slide.querySelector("img");
+        const fullscreenImg = document.createElement("img");
+        fullscreenImg.src = img.src;
+        fullscreenImg.style.width = "100vw";
+        fullscreenImg.style.height = "100vh";
+        fullscreenImg.style.objectFit = "contain"; // Adjust to fit in fullscreen
+        fullscreenImg.style.position = "fixed";
+        fullscreenImg.style.top = "0";
+        fullscreenImg.style.left = "0";
+        fullscreenImg.style.zIndex = "9999";
 
-    nextButton.addEventListener("click", () => {
-      nextSlide();
-      if (auto) {
-        clearInterval(slideInterval);
-        slideInterval = setInterval(nextSlide, intervalTime);
-      }
-    });
-    prevButton.addEventListener("click", () => {
-      prevSlide();
-      if (auto) {
-        clearInterval(slideInterval);
-        slideInterval = setInterval(nextSlide, intervalTime);
-      }
-    });
-
-    if (auto) {
-      slideInterval = setInterval(nextSlide, intervalTime);
-    }
-  </script>
-
-</body>
-
-</html>
+        // Clear existing fullscreen images if any
+        const existing
