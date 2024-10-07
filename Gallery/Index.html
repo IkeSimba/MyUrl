@@ -157,31 +157,33 @@
         <button id="prev"><i class="fas fa-arrow-left"></i></button>
         <button id="next"><i class="fas fa-arrow-right"></i></button>
     </div>
-    <button class="toggle-thumbnails" id="toggle-button">Show All</button>
+    <button class="toggle-thumbnails" id="toggle-button">🗃️</button>
     <button class="randomize-button" id="randomize-button">🎉</button>
+
     <div class="thumbnail-container" id="thumbnail-container">
-        <!-- Thumbnail buttons will be added here dynamically -->
+        <!-- Thumbnails will be added here dynamically -->
     </div>
 
     <script>
         const slidesContainer = document.querySelector(".slider");
         const nextButton = document.getElementById("next");
         const prevButton = document.getElementById("prev");
-        const thumbnailContainer = document.getElementById("thumbnail-container");
         const toggleButton = document.getElementById("toggle-button");
         const randomizeButton = document.getElementById("randomize-button");
+        const thumbnailContainer = document.getElementById("thumbnail-container");
         const auto = true;
         const intervalTime = 20000; // Change the interval time as needed
         let slideInterval;
-        let images = []; // Declare an array to hold the images
-        let currentIndex = 0; // Track the current slide index
-        let randomOrder = []; // To hold the randomized order of indices
 
         // GitHub repository details
         const repoUsername = "IkeSimba"; // Your GitHub username
         const repoName = "MyURL";         // Your repository name
         const branch = "V0";               // Your branch name
         const folderPath = "Gallery";      // Path to your images folder
+
+        // Array to hold the original order of images
+        let originalImages = [];
+        let currentIndex = 0; // Keep track of the current index in the original array
 
         // Fetch images from GitHub API
         async function fetchImages() {
@@ -190,12 +192,9 @@
             const data = await response.json();
 
             // Filter image files and create URLs
-            images = data
+            originalImages = data
                 .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Filter image files
                 .map(file => `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`);
-
-            randomOrder = [...Array(images.length).keys()].sort(() => Math.random() - 0.5); // Create random order
-            return images;
         }
 
         // Initialize slider with images
@@ -203,7 +202,7 @@
             await fetchImages();
 
             // Create slide elements and set background images
-            images.forEach((image, index) => {
+            originalImages.forEach((image, index) => {
                 const slide = document.createElement('div');
                 slide.className = 'slide';
                 if (index === 0) slide.classList.add('current'); // Set the first slide as current
@@ -213,11 +212,14 @@
                 slide.style.backgroundSize = "contain"; // Scale the image to fit within the slide
                 slidesContainer.appendChild(slide);
 
-                // Create thumbnail for each image
+                // Create thumbnail elements
                 const thumbnail = document.createElement('img');
                 thumbnail.src = image;
                 thumbnail.className = 'thumbnail';
-                thumbnail.onclick = () => showSlide(index); // Show the corresponding slide on click
+                thumbnail.addEventListener('click', () => {
+                    openSlide(index);
+                    highlightThumbnail(index);
+                });
                 thumbnailContainer.appendChild(thumbnail);
             });
 
@@ -227,77 +229,72 @@
         }
 
         const nextSlide = () => {
-            const current = document.querySelector(".current");
-            current.classList.remove("current");
-            currentIndex = (currentIndex + 1) % randomOrder.length; // Get next index in randomized order
-            slidesContainer.children[randomOrder[currentIndex]].classList.add("current");
-            updateThumbnailHighlight();
+            currentIndex++;
+            if (currentIndex >= originalImages.length) {
+                currentIndex = 0; // Loop back to the first slide
+            }
+            updateSlide(currentIndex);
         };
 
         const prevSlide = () => {
-            const current = document.querySelector(".current");
-            current.classList.remove("current");
-            currentIndex = (currentIndex - 1 + randomOrder.length) % randomOrder.length; // Get previous index in randomized order
-            slidesContainer.children[randomOrder[currentIndex]].classList.add("current");
-            updateThumbnailHighlight();
+            currentIndex--;
+            if (currentIndex < 0) {
+                currentIndex = originalImages.length - 1; // Loop back to the last slide
+            }
+            updateSlide(currentIndex);
         };
 
-        // Show slide based on the thumbnail clicked
-        const showSlide = (index) => {
-            const current = document.querySelector(".current");
-            current.classList.remove("current");
-            currentIndex = index; // Update current index
-            slidesContainer.children[randomOrder[currentIndex]].classList.add("current");
-            updateThumbnailHighlight(); // Highlight the corresponding thumbnail
+        const updateSlide = (index) => {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach((slide, i) => {
+                slide.classList.remove('current');
+                if (i === index) {
+                    slide.classList.add('current');
+                }
+            });
+            highlightThumbnail(index);
         };
 
-        // Update thumbnail highlighting
-        const updateThumbnailHighlight = () => {
-            const thumbnails = document.querySelectorAll(".thumbnail");
-            thumbnails.forEach(thumbnail => thumbnail.classList.remove("selected")); // Remove highlight from all thumbnails
-            thumbnails[randomOrder[currentIndex]].classList.add("selected"); // Highlight the current thumbnail
+        const openSlide = (index) => {
+            currentIndex = index;
+            updateSlide(index);
+            clearInterval(slideInterval); // Stop auto sliding when manually navigating
+        };
+
+        const highlightThumbnail = (index) => {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumbnail => thumbnail.classList.remove('selected'));
+            thumbnails[index].classList.add('selected');
         };
 
         // Toggle thumbnail visibility
-        toggleButton.onclick = () => {
-            if (thumbnailContainer.style.display === "none" || thumbnailContainer.style.display === "") {
-                thumbnailContainer.style.display = "flex"; // Show thumbnails
-                toggleButton.innerText = "Hide"; // Change button text to Hide
-            } else {
-                thumbnailContainer.style.display = "none"; // Hide thumbnails
-                toggleButton.innerText = "Show All"; // Change button text to Show All
-            }
-        };
+        toggleButton.addEventListener('click', () => {
+            const thumbnailsVisible = thumbnailContainer.style.display === "flex";
+            thumbnailContainer.style.display = thumbnailsVisible ? "none" : "flex";
+        });
 
-        // Randomize the slides
-        randomizeButton.onclick = () => {
-            randomOrder = [...Array(images.length).keys()].sort(() => Math.random() - 0.5); // Create random order
-            currentIndex = 0; // Reset current index
-            const current = document.querySelector(".current");
-            current.classList.remove("current");
-            slidesContainer.children[randomOrder[currentIndex]].classList.add("current"); // Show the first slide of the new random order
-            updateThumbnailHighlight(); // Highlight the first thumbnail
-        };
+        // Randomize button functionality to select a random slide
+        randomizeButton.addEventListener('click', () => {
+            currentIndex = Math.floor(Math.random() * originalImages.length); // Select a random index
+            updateSlide(currentIndex); // Update slide to the selected random index
+            clearInterval(slideInterval); // Stop auto sliding when manually randomizing
+        });
 
-        nextButton.addEventListener("click", () => {
+        // Event listeners for next and previous buttons
+        nextButton.addEventListener('click', () => {
             nextSlide();
-            if (auto) {
-                clearInterval(slideInterval);
-                slideInterval = setInterval(nextSlide, intervalTime);
-            }
+            clearInterval(slideInterval); // Stop auto sliding when manually navigating
         });
 
-        prevButton.addEventListener("click", () => {
+        prevButton.addEventListener('click', () => {
             prevSlide();
-            if (auto) {
-                clearInterval(slideInterval);
-                slideInterval = setInterval(nextSlide, intervalTime);
-            }
+            clearInterval(slideInterval); // Stop auto sliding when manually navigating
         });
 
-        // Initialize the image slider
+        // Initialize the slider
         initSlider();
     </script>
+
 </body>
 
 </html>
