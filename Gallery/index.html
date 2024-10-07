@@ -23,7 +23,7 @@
     <div class="gallery" id="gallery"></div>
 
     <script>
-        // Notion API Key and Database ID
+        // Sample Notion API Key and Database ID (replace with your own)
         const notionAPIKey = 'secret_TiYixrrDJq9M9aAfptgaRz0Rxu1S9sWK496J4DqApbQ';  // Replace with your Notion integration API key
         const notionDatabaseId = 'ccd66a50b1b74f19a5e16cf789fc08d5';  // Replace with your Notion database ID
 
@@ -38,11 +38,18 @@
                 }
             });
 
+            if (!response.ok) {
+                console.error('Error fetching data:', response.statusText);
+                return [];
+            }
+
             const data = await response.json();
-            return data.results.map(page => {
-                const imageUrl = page.properties.Attachments.files[0]?.file?.url;
-                return imageUrl;
-            }).filter(Boolean);  // Filter out any undefined or null URLs
+            return data.results.flatMap(page => {
+                // Extract image URLs from the "Attachments" property
+                return page.properties.Attachments.files
+                    .map(file => file.file?.url)  // Get the URL from each attachment
+                    .filter(Boolean);  // Filter out any undefined or null URLs
+            });
         }
 
         // Function to dynamically render the gallery
