@@ -177,19 +177,20 @@
                 .map(file => ({
                     url: `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`,
                     name: file.name,
-                    date: file.git_url, // Use file's git_url to fetch commit data later
+                    sha: file.sha,
                     likes: 0
                 }));
 
             return images;
         }
 
-        // Fetch commit date for each image (additional API call)
+        // Fetch commit date for each image using GitHub API
         async function fetchCommitDates(images) {
             const promises = images.map(async image => {
-                const response = await fetch(image.date);
-                const data = await response.json();
-                image.date = new Date(data.commit.author.date); // Use the commit date as the upload date
+                const commitUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/commits?path=${folderPath}/${image.name}&sha=${branch}`;
+                const response = await fetch(commitUrl);
+                const commitData = await response.json();
+                image.date = new Date(commitData[0].commit.author.date); // Set the commit date as the upload date
                 return image;
             });
 
