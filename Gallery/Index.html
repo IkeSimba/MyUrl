@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Image Slider with Sort Preferences</title>
+    <title>Dynamic Image Slider from GitHub</title>
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap");
@@ -41,16 +41,15 @@
             opacity: 1;
         }
 
-        .buttons button#prev {
+        .buttons {
             position: absolute;
             top: 50%;
-            left: 1rem;
-        }
-
-        .buttons button#next {
-            position: absolute;
-            top: 50%;
-            right: 1rem;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 20px;
         }
 
         .buttons button {
@@ -61,6 +60,7 @@
             padding: 13px 15px;
             border-radius: 50%;
             outline: none;
+            margin: 0 5px;
         }
 
         .buttons button:hover {
@@ -68,21 +68,54 @@
             color: #362a2b;
         }
 
-        .menu {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
+        .thumbnail-container {
+            display: none;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            margin-top: 10px;
         }
 
-        .menu select {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #e5ebf3;
-            background-color: #362a2b;
-            color: #e5ebf3;
-            font-size: 1rem;
+        .thumbnail {
+            width: 100px;
+            height: 100px;
+            margin: 5px;
             cursor: pointer;
+            border: 2px solid transparent;
+            transition: border 0.3s ease;
+            opacity: 0.75;
+        }
+
+        .thumbnail.selected {
+            border: 2px solid #e5ebf3;
+            opacity: 1;
+        }
+
+        .button-container {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .button-container button {
+            border: 2px solid #e5ebf3;
+            background-color: transparent;
+            color: #e5ebf3;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 5px;
+            opacity: 0.3;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .button-container button:hover {
+            background-color: #e5ebf3;
+            color: #362a2b;
+            opacity: 1;
         }
 
         @media (min-width: 640px) and (min-height: 640px) {
@@ -106,33 +139,27 @@
 </head>
 
 <body>
-    <div class="slider">
-        <!-- Slides will be added here dynamically -->
-    </div>
-
+    <div class="slider"></div>
     <div class="buttons">
-        <button id="prev"><i class="fas fa-arrow-left"></i></button>
-        <button id="next"><i class="fas fa-arrow-right"></i></button>
+        <button id="prev" aria-label="Previous Slide"><i class="fas fa-arrow-left"></i></button>
+        <button id="next" aria-label="Next Slide"><i class="fas fa-arrow-right"></i></button>
     </div>
 
-    <!-- Sort menu -->
-    <div class="menu">
-        <label for="sort-options">Sort images by:</label>
-        <select id="sort-options">
-            <option value="random">Random</option>
-            <option value="name">Name</option>
-            <option value="date">Date</option>
-        </select>
+    <div class="button-container">
+        <button class="toggle-thumbnails" id="toggle-button">🗃️</button>
+        <button class="randomize-button" id="randomize-button">🎉</button>
     </div>
+
+    <div class="thumbnail-container" id="thumbnail-container"></div>
 
     <script>
         const slidesContainer = document.querySelector(".slider");
         const nextButton = document.getElementById("next");
         const prevButton = document.getElementById("prev");
-        const sortSelect = document.getElementById("sort-options");
-        const auto = true;
-        const intervalTime = 20000; // Change the interval time as needed
-        let slideInterval;
+        const toggleButton = document.getElementById("toggle-button");
+        const randomizeButton = document.getElementById("randomize-button");
+        const thumbnailContainer = document.getElementById("thumbnail-container");
+        let currentIndex = 0;
 
         // GitHub repository details
         const repoUsername = "IkeSimba"; // Your GitHub username
@@ -140,115 +167,116 @@
         const branch = "V0";               // Your branch name
         const folderPath = "Gallery";      // Path to your images folder
 
-        // Fetch images from GitHub API
+        let originalImages = [];
+
         async function fetchImages() {
             const apiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/contents/${folderPath}?ref=${branch}`;
             const response = await fetch(apiUrl);
             const data = await response.json();
 
-            // Filter image files and create URLs
-            const images = data
-                .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Filter image files
-                .map(file => ({
-                    url: `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`,
-                    name: file.name,
-                    date: new Date(file.commit.author.date) // Assuming you can retrieve commit dates from the API
-                }));
+            originalImages = data
+                .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name))
+                .map(file => `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`);
 
-            return images;
+            // Start with a random index
+            currentIndex = Math.floor(Math.random() * originalImages.length);
         }
 
-        // Initialize slider with images
         async function initSlider() {
-            let images = await fetchImages();
+            await fetchImages();
 
-            // Sort images based on selected preference
-            sortImages(images);
-
-            // Create slide elements and set background images
-            images.forEach((image, index) => {
+            originalImages.forEach((image, index) => {
                 const slide = document.createElement('div');
                 slide.className = 'slide';
-                if (index === 0) slide.classList.add('current'); // Set the first slide as current
-                slide.style.backgroundImage = `url("${image.url}")`;
+                if (index === currentIndex) slide.classList.add('current');
+                slide.style.backgroundImage = `url("${image}")`;
                 slide.style.backgroundRepeat = "no-repeat";
                 slide.style.backgroundPosition = "center";
-                slide.style.backgroundSize = "contain"; // Scale the image to fit within the slide
+                slide.style.backgroundSize = "contain";
                 slidesContainer.appendChild(slide);
+
+                const thumbnail = document.createElement('img');
+                thumbnail.src = image;
+                thumbnail.className = 'thumbnail';
+                thumbnail.addEventListener('click', () => {
+                    openSlide(index);
+                    highlightThumbnail(index);
+                });
+                thumbnailContainer.appendChild(thumbnail);
             });
-
-            if (auto) {
-                slideInterval = setInterval(nextSlide, intervalTime);
-            }
         }
-
-        // Sort images based on the selected option
-        function sortImages(images) {
-            const sortOption = sortSelect.value;
-
-            if (sortOption === 'name') {
-                images.sort((a, b) => a.name.localeCompare(b.name));
-            } else if (sortOption === 'date') {
-                images.sort((a, b) => b.date - a.date); // Sort by date descending
-            } else {
-                shuffleArray(images); // Random shuffle for the 'random' option
-            }
-        }
-
-        // Shuffle the images array
-        const shuffleArray = (array) => {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        };
 
         const nextSlide = () => {
-            const current = document.querySelector(".current");
-            current.classList.remove("current");
-            if (current.nextElementSibling) {
-                current.nextElementSibling.classList.add("current");
-            } else {
-                slidesContainer.firstElementChild.classList.add("current");
+            currentIndex++;
+            if (currentIndex >= originalImages.length) {
+                currentIndex = 0;
             }
+            updateSlide(currentIndex);
         };
 
         const prevSlide = () => {
-            const current = document.querySelector(".current");
-            current.classList.remove("current");
-            if (current.previousElementSibling) {
-                current.previousElementSibling.classList.add("current");
-            } else {
-                slidesContainer.lastElementChild.classList.add("current");
+            currentIndex--;
+            if (currentIndex < 0) {
+                currentIndex = originalImages.length - 1;
             }
+            updateSlide(currentIndex);
         };
 
-        // Re-sort images when the sort option is changed
-        sortSelect.addEventListener('change', async () => {
-            slidesContainer.innerHTML = ''; // Clear existing slides
-            initSlider(); // Re-initialize the slider with the sorted images
+        const updateSlide = (index) => {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach((slide, i) => {
+                slide.classList.remove('current');
+                if (i === index) {
+                    slide.classList.add('current');
+                }
+            });
+            highlightThumbnail(index);
+        };
+
+        const openSlide = (index) => {
+            currentIndex = index;
+            updateSlide(index);
+        };
+
+        const highlightThumbnail = (index) => {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach((thumbnail, i) => {
+                thumbnail.classList.remove('selected');
+                if (i === index) {
+                    thumbnail.classList.add('selected');
+                }
+            });
+        };
+
+        toggleButton.addEventListener('click', () => {
+            thumbnailContainer.style.display = thumbnailContainer.style.display === 'flex' ? 'none' : 'flex';
         });
 
-        nextButton.addEventListener("click", () => {
-            nextSlide();
-            if (auto) {
-                clearInterval(slideInterval);
-                slideInterval = setInterval(nextSlide, intervalTime);
+        randomizeButton.addEventListener('click', () => {
+            // Shuffle the originalImages array
+            originalImages = originalImages.sort(() => Math.random() - 0.5);
+            currentIndex = Math.floor(Math.random() * originalImages.length); // Reset to a random slide after randomizing
+            updateSlide(currentIndex);
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => slide.remove()); // Clear existing slides
+            initSlider(); // Reinitialize with the new order
+        });
+
+        nextButton.addEventListener('click', nextSlide);
+        prevButton.addEventListener('click', prevSlide);
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight') {
+                nextSlide();
+            } else if (event.key === 'ArrowLeft') {
+                prevSlide();
             }
         });
 
-        prevButton.addEventListener("click", () => {
-            prevSlide();
-            if (auto) {
-                clearInterval(slideInterval);
-                slideInterval = setInterval(nextSlide, intervalTime);
-            }
-        });
-
-        // Initialize the image slider
+        // Initialize the slider on page load
         initSlider();
     </script>
-
 </body>
 
 </html>
