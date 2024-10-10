@@ -159,15 +159,51 @@
         const intervalTime = 20000; // Change the interval time as needed
         let slideInterval;
 
-        // Example images array (replace with actual GitHub image fetching logic)
-        const images = [
-            { url: 'https://via.placeholder.com/800x600?text=Image1', name: 'Image1', date: '2024-10-01', likes: 0 },
-            { url: 'https://via.placeholder.com/800x600?text=Image2', name: 'Image2', date: '2024-09-15', likes: 0 },
-            { url: 'https://via.placeholder.com/800x600?text=Image3', name: 'Image3', date: '2024-09-25', likes: 0 }
-        ];
+        // GitHub repository details
+        const repoUsername = "IkeSimba"; // Your GitHub username
+        const repoName = "MyURL";         // Your repository name
+        const branch = "V0";               // Your branch name
+        const folderPath = "Gallery";      // Path to your images folder
+
+        // Fetch images from GitHub API
+        async function fetchImages() {
+            const apiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/contents/${folderPath}?ref=${branch}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
+
+            // Filter image files and create URLs along with placeholders for likes and dates
+            const images = data
+                .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Filter image files
+                .map(file => ({
+                    url: `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`,
+                    name: file.name,
+                    date: file.git_url, // Use file's git_url to fetch commit data later
+                    likes: 0
+                }));
+
+            return images;
+        }
+
+        // Fetch commit date for each image (additional API call)
+        async function fetchCommitDates(images) {
+            const promises = images.map(async image => {
+                const response = await fetch(image.date);
+                const data = await response.json();
+                image.date = new Date(data.commit.author.date); // Use the commit date as the upload date
+                return image;
+            });
+
+            return Promise.all(promises);
+        }
 
         // Initialize slider with images
-        async function initSlider(images) {
+        async function initSlider() {
+            let images = await fetchImages();
+            images = await fetchCommitDates(images);
+
+            // Sort images initially by date
+            sortImages(images, 'date');
+
             slidesContainer.innerHTML = ''; // Clear previous slides
 
             // Create slide elements and set background images
@@ -242,8 +278,7 @@
         // Re-sort images when the sort option is changed
         sortSelect.addEventListener('change', () => {
             const sortOption = sortSelect.value;
-            sortImages(images, sortOption);
-            initSlider(images); // Re-initialize the slider with the sorted images
+            initSlider(); // Reload the slider with the new sort order
         });
 
         nextButton.addEventListener("click", () => {
@@ -262,9 +297,8 @@
             }
         });
 
-        // Initialize the slider and sort images by date by default
-        sortImages(images, 'date');
-        initSlider(images);
+        // Initialize the image slider
+        initSlider();
     </script>
 
 </body>
