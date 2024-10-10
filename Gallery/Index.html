@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Image Slider from GitHub</title>
+    <title>Dynamic Image Slider with Sort Preferences</title>
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap");
@@ -68,6 +68,23 @@
             color: #362a2b;
         }
 
+        .menu {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
+
+        .menu select {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #e5ebf3;
+            background-color: #362a2b;
+            color: #e5ebf3;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
         @media (min-width: 640px) and (min-height: 640px) {
             .slide .content {
                 bottom: 70px;
@@ -92,15 +109,27 @@
     <div class="slider">
         <!-- Slides will be added here dynamically -->
     </div>
+
     <div class="buttons">
         <button id="prev"><i class="fas fa-arrow-left"></i></button>
         <button id="next"><i class="fas fa-arrow-right"></i></button>
+    </div>
+
+    <!-- Sort menu -->
+    <div class="menu">
+        <label for="sort-options">Sort images by:</label>
+        <select id="sort-options">
+            <option value="random">Random</option>
+            <option value="name">Name</option>
+            <option value="date">Date</option>
+        </select>
     </div>
 
     <script>
         const slidesContainer = document.querySelector(".slider");
         const nextButton = document.getElementById("next");
         const prevButton = document.getElementById("prev");
+        const sortSelect = document.getElementById("sort-options");
         const auto = true;
         const intervalTime = 20000; // Change the interval time as needed
         let slideInterval;
@@ -120,24 +149,28 @@
             // Filter image files and create URLs
             const images = data
                 .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Filter image files
-                .map(file => `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`);
+                .map(file => ({
+                    url: `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`,
+                    name: file.name,
+                    date: new Date(file.commit.author.date) // Assuming you can retrieve commit dates from the API
+                }));
 
             return images;
         }
 
         // Initialize slider with images
         async function initSlider() {
-            const images = await fetchImages();
+            let images = await fetchImages();
 
-            // Shuffle the images array
-            shuffleArray(images);
+            // Sort images based on selected preference
+            sortImages(images);
 
             // Create slide elements and set background images
             images.forEach((image, index) => {
                 const slide = document.createElement('div');
                 slide.className = 'slide';
                 if (index === 0) slide.classList.add('current'); // Set the first slide as current
-                slide.style.backgroundImage = `url("${image}")`;
+                slide.style.backgroundImage = `url("${image.url}")`;
                 slide.style.backgroundRepeat = "no-repeat";
                 slide.style.backgroundPosition = "center";
                 slide.style.backgroundSize = "contain"; // Scale the image to fit within the slide
@@ -146,6 +179,19 @@
 
             if (auto) {
                 slideInterval = setInterval(nextSlide, intervalTime);
+            }
+        }
+
+        // Sort images based on the selected option
+        function sortImages(images) {
+            const sortOption = sortSelect.value;
+
+            if (sortOption === 'name') {
+                images.sort((a, b) => a.name.localeCompare(b.name));
+            } else if (sortOption === 'date') {
+                images.sort((a, b) => b.date - a.date); // Sort by date descending
+            } else {
+                shuffleArray(images); // Random shuffle for the 'random' option
             }
         }
 
@@ -176,6 +222,12 @@
                 slidesContainer.lastElementChild.classList.add("current");
             }
         };
+
+        // Re-sort images when the sort option is changed
+        sortSelect.addEventListener('change', async () => {
+            slidesContainer.innerHTML = ''; // Clear existing slides
+            initSlider(); // Re-initialize the slider with the sorted images
+        });
 
         nextButton.addEventListener("click", () => {
             nextSlide();
