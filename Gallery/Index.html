@@ -41,16 +41,15 @@
             opacity: 1;
         }
 
-        .buttons button#prev {
+        .buttons {
             position: absolute;
             top: 50%;
-            left: 1rem;
-        }
-
-        .buttons button#next {
-            position: absolute;
-            top: 50%;
-            right: 1rem;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            justify-content: space-between; /* Distribute buttons evenly */
+            width: 100%; /* Full width for spacing */
+            padding: 0 20px; /* Optional padding */
         }
 
         .buttons button {
@@ -61,6 +60,7 @@
             padding: 13px 15px;
             border-radius: 50%;
             outline: none;
+            margin: 0 5px;
         }
 
         .buttons button:hover {
@@ -91,42 +91,31 @@
             opacity: 1; /* Fully opaque when selected */
         }
 
-        .toggle-thumbnails {
-            margin: 20px 10px; /* Margin adjusted for spacing */
+        .button-container {
+            position: absolute;
+            bottom: 20px; /* Distance from bottom */
+            width: 100%; /* Full width for buttons */
+            display: flex;
+            justify-content: center; /* Center the buttons */
+            gap: 10px; /* Space between buttons */
+            z-index: 10; /* Above other elements */
+        }
+
+        .button-container button {
             border: 2px solid #e5ebf3;
             background-color: transparent;
             color: #e5ebf3;
             cursor: pointer;
             padding: 10px 15px;
             border-radius: 5px;
-            position: absolute; /* Positioning the button at the bottom */
-            bottom: 20px; /* Distance from bottom */
-            left: 40%; /* Centering horizontally */
-            transform: translateX(-50%); /* Centering the button */
-            z-index: 10; /* Above other elements */
             opacity: 0.3; /* 70% transparent */
+            transition: background-color 0.3s, color 0.3s; /* Transition for hover effect */
         }
 
-        .randomize-button {
-            margin: 20px 10px; /* Margin adjusted for spacing */
-            border: 2px solid #e5ebf3;
-            background-color: transparent;
-            color: #e5ebf3;
-            cursor: pointer;
-            padding: 10px 15px;
-            border-radius: 5px;
-            position: absolute; /* Positioning the button at the bottom */
-            bottom: 20px; /* Distance from bottom */
-            left: 60%; /* Centering horizontally */
-            transform: translateX(-50%); /* Centering the button */
-            z-index: 10; /* Above other elements */
-            opacity: 0.3; /* 70% transparent */
-        }
-
-        .toggle-thumbnails:hover,
-        .randomize-button:hover {
+        .button-container button:hover {
             background-color: #e5ebf3;
             color: #362a2b;
+            opacity: 1; /* Fully opaque on hover */
         }
 
         @media (min-width: 640px) and (min-height: 640px) {
@@ -154,11 +143,15 @@
         <!-- Slides will be added here dynamically -->
     </div>
     <div class="buttons">
-        <button id="prev"><i class="fas fa-arrow-left"></i></button>
-        <button id="next"><i class="fas fa-arrow-right"></i></button>
+        <button id="prev" aria-label="Previous Slide"><i class="fas fa-arrow-left"></i></button>
+        <button id="next" aria-label="Next Slide"><i class="fas fa-arrow-right"></i></button>
     </div>
-    <button class="toggle-thumbnails" id="toggle-button">🗃️</button>
-    <button class="randomize-button" id="randomize-button">🎉</button>
+
+    <div class="button-container">
+        <button class="like-button" id="like-button">❤️ (0)</button> <!-- Like button updated -->
+        <button class="toggle-thumbnails" id="toggle-button">🗃️</button>
+        <button class="randomize-button" id="randomize-button">🎉</button>
+    </div>
 
     <div class="thumbnail-container" id="thumbnail-container">
         <!-- Thumbnails will be added here dynamically -->
@@ -171,9 +164,8 @@
         const toggleButton = document.getElementById("toggle-button");
         const randomizeButton = document.getElementById("randomize-button");
         const thumbnailContainer = document.getElementById("thumbnail-container");
-        const auto = true;
-        const intervalTime = 20000; // Change the interval time as needed
-        let slideInterval;
+        const likeButton = document.getElementById("like-button");
+        let currentIndex = 0; // Keep track of the current index in the original array
 
         // GitHub repository details
         const repoUsername = "IkeSimba"; // Your GitHub username
@@ -183,7 +175,7 @@
 
         // Array to hold the original order of images
         let originalImages = [];
-        let currentIndex = 0; // Keep track of the current index in the original array
+        let likeCounts = []; // Array to hold like counts for each image
 
         // Fetch images from GitHub API
         async function fetchImages() {
@@ -195,6 +187,9 @@
             originalImages = data
                 .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Filter image files
                 .map(file => `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`);
+            
+            // Initialize like counts for each image
+            likeCounts = new Array(originalImages.length).fill(0); // Initialize like count to 0 for each image
         }
 
         // Initialize slider with images
@@ -219,13 +214,12 @@
                 thumbnail.addEventListener('click', () => {
                     openSlide(index);
                     highlightThumbnail(index);
+                    updateLikeButton(index); // Update like button when a new slide is opened
                 });
                 thumbnailContainer.appendChild(thumbnail);
             });
 
-            if (auto) {
-                slideInterval = setInterval(nextSlide, intervalTime);
-            }
+            updateLikeButton(currentIndex); // Display the initial like count for the first image
         }
 
         const nextSlide = () => {
@@ -253,48 +247,73 @@
                 }
             });
             highlightThumbnail(index);
+            updateLikeButton(index); // Update the like button when the slide changes
         };
 
         const openSlide = (index) => {
             currentIndex = index;
             updateSlide(index);
-            clearInterval(slideInterval); // Stop auto sliding when manually navigating
         };
 
         const highlightThumbnail = (index) => {
             const thumbnails = document.querySelectorAll('.thumbnail');
-            thumbnails.forEach(thumbnail => thumbnail.classList.remove('selected'));
-            thumbnails[index].classList.add('selected');
+            thumbnails.forEach((thumbnail, i) => {
+                thumbnail.classList.remove('selected');
+                if (i === index) {
+                    thumbnail.classList.add('selected');
+                }
+            });
         };
 
         // Toggle thumbnail visibility
         toggleButton.addEventListener('click', () => {
-            const thumbnailsVisible = thumbnailContainer.style.display === "flex";
-            thumbnailContainer.style.display = thumbnailsVisible ? "none" : "flex";
+            thumbnailContainer.style.display = thumbnailContainer.style.display === 'flex' ? 'none' : 'flex';
         });
 
-        // Randomize button functionality to select a random slide
+        // Randomize the slide order
         randomizeButton.addEventListener('click', () => {
-            currentIndex = Math.floor(Math.random() * originalImages.length); // Select a random index
-            updateSlide(currentIndex); // Update slide to the selected random index
-            clearInterval(slideInterval); // Stop auto sliding when manually randomizing
+            originalImages = originalImages.sort(() => Math.random() - 0.5);
+            currentIndex = 0; // Reset to the first slide after randomizing
+            updateSlide(currentIndex);
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach(slide => slide.remove()); // Clear existing slides
+            initSlider(); // Reinitialize with the new order
         });
 
-        // Event listeners for next and previous buttons
-        nextButton.addEventListener('click', () => {
-            nextSlide();
-            clearInterval(slideInterval); // Stop auto sliding when manually navigating
+        // Handle like button click
+        likeButton.addEventListener('click', () => {
+            likeCounts[currentIndex]++; // Increment like count for the current image
+            updateLikeButton(currentIndex); // Update the displayed count
+            localStorage.setItem('likeCounts', JSON.stringify(likeCounts)); // Persist the like counts
         });
 
-        prevButton.addEventListener('click', () => {
-            prevSlide();
-            clearInterval(slideInterval); // Stop auto sliding when manually navigating
+        // Update like button display
+        function updateLikeButton(index) {
+            likeButton.textContent = `❤️ (${likeCounts[index]})`; // Update the button text with the count for the current image
+        }
+
+        // Load saved like counts from localStorage on page load
+        const savedLikeCounts = localStorage.getItem('likeCounts');
+        if (savedLikeCounts) {
+            likeCounts = JSON.parse(savedLikeCounts);
+            updateLikeButton(currentIndex); // Display the saved count for the current image
+        }
+
+        nextButton.addEventListener('click', nextSlide);
+        prevButton.addEventListener('click', prevSlide);
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'ArrowRight') {
+                nextSlide();
+            } else if (event.key === 'ArrowLeft') {
+                prevSlide();
+            }
         });
 
-        // Initialize the slider
+        // Initialize the slider on page load
         initSlider();
     </script>
-
 </body>
 
 </html>
