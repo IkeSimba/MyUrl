@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Image Slider with Like Counter and Sorting</title>
+    <title>Dynamic Image Slider from GitHub</title>
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap");
@@ -61,7 +61,6 @@
             padding: 13px 15px;
             border-radius: 50%;
             outline: none;
-            opacity: 0.6;
         }
 
         .buttons button:hover {
@@ -69,45 +68,65 @@
             color: #362a2b;
         }
 
-        .menu {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
+        .thumbnail-container {
+            display: none; /* Initially hidden */
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%; /* Full width */
+            margin-top: 10px; /* Space above thumbnails */
         }
 
-        .menu select {
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #e5ebf3;
-            background-color: #362a2b;
-            color: #e5ebf3;
-            font-size: 1rem;
+        .thumbnail {
+            width: 100px; /* Adjust thumbnail width */
+            height: 100px; /* Adjust thumbnail height */
+            margin: 5px; /* Space between thumbnails */
             cursor: pointer;
+            border: 2px solid transparent;
+            transition: border 0.3s ease;
+            opacity: 0.75; /* Slightly transparent */
         }
 
-        .like-counter {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            opacity: 0.6;
-            font-size: 1.2rem;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 5px 10px;
-            border-radius: 10px;
+        .thumbnail.selected {
+            border: 2px solid #e5ebf3; /* Highlight border color */
+            opacity: 1; /* Fully opaque when selected */
         }
 
-        .like-counter button {
-            border: none;
+        .toggle-thumbnails {
+            margin: 20px 10px; /* Margin adjusted for spacing */
+            border: 2px solid #e5ebf3;
             background-color: transparent;
             color: #e5ebf3;
             cursor: pointer;
-            font-size: 1.2rem;
-            padding: 5px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            position: absolute; /* Positioning the button at the bottom */
+            bottom: 20px; /* Distance from bottom */
+            left: 40%; /* Centering horizontally */
+            transform: translateX(-50%); /* Centering the button */
+            z-index: 10; /* Above other elements */
+            opacity: 0.3; /* 70% transparent */
         }
 
-        .like-counter button:hover {
-            color: #ff5050;
+        .randomize-button {
+            margin: 20px 10px; /* Margin adjusted for spacing */
+            border: 2px solid #e5ebf3;
+            background-color: transparent;
+            color: #e5ebf3;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 5px;
+            position: absolute; /* Positioning the button at the bottom */
+            bottom: 20px; /* Distance from bottom */
+            left: 60%; /* Centering horizontally */
+            transform: translateX(-50%); /* Centering the button */
+            z-index: 10; /* Above other elements */
+            opacity: 0.3; /* 70% transparent */
+        }
+
+        .toggle-thumbnails:hover,
+        .randomize-button:hover {
+            background-color: #e5ebf3;
+            color: #362a2b;
         }
 
         @media (min-width: 640px) and (min-height: 640px) {
@@ -134,27 +153,24 @@
     <div class="slider">
         <!-- Slides will be added here dynamically -->
     </div>
-
     <div class="buttons">
         <button id="prev"><i class="fas fa-arrow-left"></i></button>
         <button id="next"><i class="fas fa-arrow-right"></i></button>
     </div>
+    <button class="toggle-thumbnails" id="toggle-button">🗃️</button>
+    <button class="randomize-button" id="randomize-button">🎉</button>
 
-    <!-- Sort menu -->
-    <div class="menu">
-        <label for="sort-options">Sort images by:</label>
-        <select id="sort-options">
-            <option value="random">Random</option>
-            <option value="name">Name</option>
-            <option value="date" selected>Date</option>
-        </select>
+    <div class="thumbnail-container" id="thumbnail-container">
+        <!-- Thumbnails will be added here dynamically -->
     </div>
 
     <script>
         const slidesContainer = document.querySelector(".slider");
         const nextButton = document.getElementById("next");
         const prevButton = document.getElementById("prev");
-        const sortSelect = document.getElementById("sort-options");
+        const toggleButton = document.getElementById("toggle-button");
+        const randomizeButton = document.getElementById("randomize-button");
+        const thumbnailContainer = document.getElementById("thumbnail-container");
         const auto = true;
         const intervalTime = 20000; // Change the interval time as needed
         let slideInterval;
@@ -165,71 +181,46 @@
         const branch = "V0";               // Your branch name
         const folderPath = "Gallery";      // Path to your images folder
 
+        // Array to hold the original order of images
+        let originalImages = [];
+        let currentIndex = 0; // Keep track of the current index in the original array
+
         // Fetch images from GitHub API
         async function fetchImages() {
             const apiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/contents/${folderPath}?ref=${branch}`;
             const response = await fetch(apiUrl);
             const data = await response.json();
 
-            // Filter image files and create URLs along with placeholders for likes and dates
-            const images = data
+            // Filter image files and create URLs
+            originalImages = data
                 .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Filter image files
-                .map(file => ({
-                    url: `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`,
-                    name: file.name,
-                    sha: file.sha,
-                    likes: 0
-                }));
-
-            return images;
-        }
-
-        // Fetch commit date for each image using GitHub API
-        async function fetchCommitDates(images) {
-            const promises = images.map(async image => {
-                const commitUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/commits?path=${folderPath}/${image.name}&sha=${branch}`;
-                const response = await fetch(commitUrl);
-                const commitData = await response.json();
-                image.date = new Date(commitData[0].commit.author.date); // Set the commit date as the upload date
-                return image;
-            });
-
-            return Promise.all(promises);
+                .map(file => `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`);
         }
 
         // Initialize slider with images
         async function initSlider() {
-            let images = await fetchImages();
-            images = await fetchCommitDates(images);
-
-            // Sort images initially by date
-            sortImages(images, 'date');
-
-            slidesContainer.innerHTML = ''; // Clear previous slides
+            await fetchImages();
 
             // Create slide elements and set background images
-            images.forEach((image, index) => {
+            originalImages.forEach((image, index) => {
                 const slide = document.createElement('div');
                 slide.className = 'slide';
                 if (index === 0) slide.classList.add('current'); // Set the first slide as current
-                slide.style.backgroundImage = `url("${image.url}")`;
+                slide.style.backgroundImage = `url("${image}")`;
                 slide.style.backgroundRepeat = "no-repeat";
                 slide.style.backgroundPosition = "center";
                 slide.style.backgroundSize = "contain"; // Scale the image to fit within the slide
-
-                // Create a like counter
-                const likeCounter = document.createElement('div');
-                likeCounter.className = 'like-counter';
-                likeCounter.innerHTML = `<button class="like-btn">❤</button> <span>${image.likes}</span>`;
-                slide.appendChild(likeCounter);
-
-                // Add like button functionality
-                likeCounter.querySelector('.like-btn').addEventListener('click', () => {
-                    image.likes++;
-                    likeCounter.querySelector('span').textContent = image.likes;
-                });
-
                 slidesContainer.appendChild(slide);
+
+                // Create thumbnail elements
+                const thumbnail = document.createElement('img');
+                thumbnail.src = image;
+                thumbnail.className = 'thumbnail';
+                thumbnail.addEventListener('click', () => {
+                    openSlide(index);
+                    highlightThumbnail(index);
+                });
+                thumbnailContainer.appendChild(thumbnail);
             });
 
             if (auto) {
@@ -237,68 +228,70 @@
             }
         }
 
-        // Sort images based on the selected option
-        function sortImages(images, sortOption) {
-            if (sortOption === 'name') {
-                images.sort((a, b) => a.name.localeCompare(b.name));
-            } else if (sortOption === 'date') {
-                images.sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
-            } else {
-                shuffleArray(images); // Random shuffle for the 'random' option
-            }
-        }
-
-        // Shuffle the images array
-        const shuffleArray = (array) => {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        };
-
         const nextSlide = () => {
-            const current = document.querySelector(".current");
-            current.classList.remove("current");
-            if (current.nextElementSibling) {
-                current.nextElementSibling.classList.add("current");
-            } else {
-                slidesContainer.firstElementChild.classList.add("current");
+            currentIndex++;
+            if (currentIndex >= originalImages.length) {
+                currentIndex = 0; // Loop back to the first slide
             }
+            updateSlide(currentIndex);
         };
 
         const prevSlide = () => {
-            const current = document.querySelector(".current");
-            current.classList.remove("current");
-            if (current.previousElementSibling) {
-                current.previousElementSibling.classList.add("current");
-            } else {
-                slidesContainer.lastElementChild.classList.add("current");
+            currentIndex--;
+            if (currentIndex < 0) {
+                currentIndex = originalImages.length - 1; // Loop back to the last slide
             }
+            updateSlide(currentIndex);
         };
 
-        // Re-sort images when the sort option is changed
-        sortSelect.addEventListener('change', () => {
-            const sortOption = sortSelect.value;
-            initSlider(); // Reload the slider with the new sort order
+        const updateSlide = (index) => {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach((slide, i) => {
+                slide.classList.remove('current');
+                if (i === index) {
+                    slide.classList.add('current');
+                }
+            });
+            highlightThumbnail(index);
+        };
+
+        const openSlide = (index) => {
+            currentIndex = index;
+            updateSlide(index);
+            clearInterval(slideInterval); // Stop auto sliding when manually navigating
+        };
+
+        const highlightThumbnail = (index) => {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumbnail => thumbnail.classList.remove('selected'));
+            thumbnails[index].classList.add('selected');
+        };
+
+        // Toggle thumbnail visibility
+        toggleButton.addEventListener('click', () => {
+            const thumbnailsVisible = thumbnailContainer.style.display === "flex";
+            thumbnailContainer.style.display = thumbnailsVisible ? "none" : "flex";
         });
 
-        nextButton.addEventListener("click", () => {
+        // Randomize button functionality to select a random slide
+        randomizeButton.addEventListener('click', () => {
+            currentIndex = Math.floor(Math.random() * originalImages.length); // Select a random index
+            updateSlide(currentIndex); // Update slide to the selected random index
+            clearInterval(slideInterval); // Stop auto sliding when manually randomizing
+        });
+
+        // Event listeners for next and previous buttons
+        nextButton.addEventListener('click', () => {
             nextSlide();
-            if (auto) {
-                clearInterval(slideInterval);
-                slideInterval = setInterval(nextSlide, intervalTime);
-            }
+            clearInterval(slideInterval); // Stop auto sliding when manually navigating
         });
 
-        prevButton.addEventListener("click", () => {
+        prevButton.addEventListener('click', () => {
             prevSlide();
-            if (auto) {
-                clearInterval(slideInterval);
-                slideInterval = setInterval(nextSlide, intervalTime);
-            }
+            clearInterval(slideInterval); // Stop auto sliding when manually navigating
         });
 
-        // Initialize the image slider
+        // Initialize the slider
         initSlider();
     </script>
 
