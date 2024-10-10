@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GitHub API Rate Limit</title>
+    <title>GitHub API Rate Limit Checker</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -20,9 +20,23 @@
             padding: 15px;
             border-radius: 5px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
         }
         .rate-limit p {
             margin: 5px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
         }
     </style>
 </head>
@@ -49,10 +63,49 @@
 
         function displayRateLimit(data) {
             const rateLimitContainer = document.getElementById('rate-limit');
+            const coreApi = data.rate || {};
+            const searchApi = data.resources.search || {};
+            const graphqlApi = data.resources.graphql || {};
+            const integrationsApi = data.resources.integrations || { limit: 'N/A', remaining: 'N/A', reset: 'N/A' };
+
             const rateInfo = `
-                <p><strong>Limit:</strong> ${data.rate.limit}</p>
-                <p><strong>Remaining:</strong> ${data.rate.remaining}</p>
-                <p><strong>Reset Time:</strong> ${new Date(data.rate.reset * 1000).toLocaleString()}</p>
+                <h2>Rate Limit Overview</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Endpoint</th>
+                            <th>Limit</th>
+                            <th>Remaining</th>
+                            <th>Reset Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Core API</td>
+                            <td>${coreApi.limit || 'N/A'}</td>
+                            <td>${coreApi.remaining || 'N/A'}</td>
+                            <td>${new Date(coreApi.reset * 1000).toLocaleString() || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td>Search</td>
+                            <td>${searchApi.limit || 'N/A'}</td>
+                            <td>${searchApi.remaining || 'N/A'}</td>
+                            <td>${new Date(searchApi.reset * 1000).toLocaleString() || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td>GraphQL</td>
+                            <td>${graphqlApi.limit || 'N/A'}</td>
+                            <td>${graphqlApi.remaining || 'N/A'}</td>
+                            <td>${new Date(graphqlApi.reset * 1000).toLocaleString() || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                            <td>Integrations</td>
+                            <td>${integrationsApi.limit}</td>
+                            <td>${integrationsApi.remaining}</td>
+                            <td>${new Date(integrationsApi.reset * 1000).toLocaleString()}</td>
+                        </tr>
+                    </tbody>
+                </table>
             `;
             rateLimitContainer.innerHTML = rateInfo;
         }
