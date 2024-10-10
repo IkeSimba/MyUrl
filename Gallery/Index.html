@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Image Slider with Sort Preferences</title>
+    <title>Dynamic Image Slider with Like Counter and Sorting</title>
     <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap");
@@ -61,6 +61,7 @@
             padding: 13px 15px;
             border-radius: 50%;
             outline: none;
+            opacity: 0.6;
         }
 
         .buttons button:hover {
@@ -83,6 +84,30 @@
             color: #e5ebf3;
             font-size: 1rem;
             cursor: pointer;
+        }
+
+        .like-counter {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            opacity: 0.6;
+            font-size: 1.2rem;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 5px 10px;
+            border-radius: 10px;
+        }
+
+        .like-counter button {
+            border: none;
+            background-color: transparent;
+            color: #e5ebf3;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 5px;
+        }
+
+        .like-counter button:hover {
+            color: #ff5050;
         }
 
         @media (min-width: 640px) and (min-height: 640px) {
@@ -121,7 +146,7 @@
         <select id="sort-options">
             <option value="random">Random</option>
             <option value="name">Name</option>
-            <option value="date">Date</option>
+            <option value="date" selected>Date</option>
         </select>
     </div>
 
@@ -134,36 +159,16 @@
         const intervalTime = 20000; // Change the interval time as needed
         let slideInterval;
 
-        // GitHub repository details
-        const repoUsername = "IkeSimba"; // Your GitHub username
-        const repoName = "MyURL";         // Your repository name
-        const branch = "V0";               // Your branch name
-        const folderPath = "Gallery";      // Path to your images folder
-
-        // Fetch images from GitHub API
-        async function fetchImages() {
-            const apiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/contents/${folderPath}?ref=${branch}`;
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-
-            // Filter image files and create URLs
-            const images = data
-                .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Filter image files
-                .map(file => ({
-                    url: `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`,
-                    name: file.name,
-                    date: new Date(file.commit.author.date) // Assuming you can retrieve commit dates from the API
-                }));
-
-            return images;
-        }
+        // Example images array (replace with actual GitHub image fetching logic)
+        const images = [
+            { url: 'https://via.placeholder.com/800x600?text=Image1', name: 'Image1', date: '2024-10-01', likes: 0 },
+            { url: 'https://via.placeholder.com/800x600?text=Image2', name: 'Image2', date: '2024-09-15', likes: 0 },
+            { url: 'https://via.placeholder.com/800x600?text=Image3', name: 'Image3', date: '2024-09-25', likes: 0 }
+        ];
 
         // Initialize slider with images
-        async function initSlider() {
-            let images = await fetchImages();
-
-            // Sort images based on selected preference
-            sortImages(images);
+        async function initSlider(images) {
+            slidesContainer.innerHTML = ''; // Clear previous slides
 
             // Create slide elements and set background images
             images.forEach((image, index) => {
@@ -174,6 +179,19 @@
                 slide.style.backgroundRepeat = "no-repeat";
                 slide.style.backgroundPosition = "center";
                 slide.style.backgroundSize = "contain"; // Scale the image to fit within the slide
+
+                // Create a like counter
+                const likeCounter = document.createElement('div');
+                likeCounter.className = 'like-counter';
+                likeCounter.innerHTML = `<button class="like-btn">❤</button> <span>${image.likes}</span>`;
+                slide.appendChild(likeCounter);
+
+                // Add like button functionality
+                likeCounter.querySelector('.like-btn').addEventListener('click', () => {
+                    image.likes++;
+                    likeCounter.querySelector('span').textContent = image.likes;
+                });
+
                 slidesContainer.appendChild(slide);
             });
 
@@ -183,13 +201,11 @@
         }
 
         // Sort images based on the selected option
-        function sortImages(images) {
-            const sortOption = sortSelect.value;
-
+        function sortImages(images, sortOption) {
             if (sortOption === 'name') {
                 images.sort((a, b) => a.name.localeCompare(b.name));
             } else if (sortOption === 'date') {
-                images.sort((a, b) => b.date - a.date); // Sort by date descending
+                images.sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort by date descending
             } else {
                 shuffleArray(images); // Random shuffle for the 'random' option
             }
@@ -224,9 +240,10 @@
         };
 
         // Re-sort images when the sort option is changed
-        sortSelect.addEventListener('change', async () => {
-            slidesContainer.innerHTML = ''; // Clear existing slides
-            initSlider(); // Re-initialize the slider with the sorted images
+        sortSelect.addEventListener('change', () => {
+            const sortOption = sortSelect.value;
+            sortImages(images, sortOption);
+            initSlider(images); // Re-initialize the slider with the sorted images
         });
 
         nextButton.addEventListener("click", () => {
@@ -245,8 +262,9 @@
             }
         });
 
-        // Initialize the image slider
-        initSlider();
+        // Initialize the slider and sort images by date by default
+        sortImages(images, 'date');
+        initSlider(images);
     </script>
 
 </body>
