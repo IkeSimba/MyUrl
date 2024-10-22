@@ -115,7 +115,7 @@
         .button-container button:hover {
             background-color: #e5ebf3;
             color: #362a2b;
-            opacity: 1;
+            opacity: 0.5;
         }
 
         /* New styles for commit timestamp */
@@ -145,7 +145,7 @@
         <button class="toggle-thumbnails" id="toggle-button">🗃️</button>
         <button class="randomize-button" id="randomize-button">🎉</button>
         <input type="file" id="fileInput" accept="image/*" multiple style="display: none;" />
-        <button id="uploadButton" onclick="document.getElementById('fileInput').click();">📸</button>
+        <button id="uploadButton">📸</button>
     </div>
 
     <div class="thumbnail-container" id="thumbnail-container"></div>
@@ -160,6 +160,7 @@
         const thumbnailContainer = document.getElementById("thumbnail-container");
         const commitTimestamp = document.getElementById("commit-timestamp");
         const fileInput = document.getElementById("fileInput");
+        const uploadButton = document.getElementById("uploadButton");
         let currentIndex = 0;
 
         // GitHub repository details
@@ -170,18 +171,6 @@
 
         let originalImages = [];
         let uploadCount = 0; // Counter for uploaded files
-        let githubToken = ''; // Variable to hold the GitHub token
-
-        async function fetchToken() {
-            const tokenFileUrl = `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/token.txt`;
-            const response = await fetch(tokenFileUrl);
-            if (response.ok) {
-                githubToken = await response.text();
-            } else {
-                console.error('Failed to fetch the token');
-                throw new Error('Could not retrieve token');
-            }
-        }
 
         async function fetchImages() {
             const apiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/contents/${folderPath}?ref=${branch}`;
@@ -201,7 +190,6 @@
         }
 
         async function initSlider() {
-            await fetchToken(); // Fetch the token first
             await fetchImages();
             createSlides();
             updateSlider();
@@ -284,59 +272,25 @@
         nextButton.addEventListener('click', nextSlide);
         prevButton.addEventListener('click', prevSlide);
 
-        fileInput.addEventListener('change', async (event) => {
-            const files = event.target.files;
-            for (const file of files) {
-                await uploadFile(file);
+        // Update the commit timestamp
+        async function updateCommitTimestamp() {
+            const commitsApiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/commits?path=${folderPath}&per_page=1`;
+            const response = await fetch(commitsApiUrl);
+            const data = await response.json();
+
+            if (data.length > 0) {
+                const lastCommit = new Date(data[0].commit.committer.date);
+                commitTimestamp.innerText = `Last updated: ${lastCommit.toLocaleString()}`;
             }
+        }
+
+        // Upload button functionality
+        uploadButton.addEventListener("click", () => {
+            window.open('https://github.com/IkeSimba/MyUrl/upload/V0/Gallery', '_blank');
         });
 
-        async function uploadFile(file) {
-            const newFileName = `${uploadCount + 1}_${file.name}`; // Add sequence number to the filename
-            const response = await fetch(`https://api.github.com/repos/${repoUsername}/${repoName}/contents/${folderPath}/${newFileName}`, {
-                method: 'PUT',
-                headers: {
-                    Authorization: `token ${githubToken}`, // Use the fetched GitHub token
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Upload ${newFileName}`,
-                    content: await fileToBase64(file),
-                })
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                console.error('Upload error:', errorData);
-                throw new Error(`Failed to upload image: ${errorData.message}`);
-            }
-
-            console.log(`Successfully uploaded ${newFileName}`);
-            uploadCount++; // Increment the upload counter
-            await fetchImages(); // Refresh the images after upload
-        }
-
-        async function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result.split(',')[1]); // Return only the base64 part
-                reader.onerror = reject;
-                reader.readAsDataURL(file);
-            });
-        }
-
-        const updateCommitTimestamp = async () => {
-            const apiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/commits?path=${folderPath}&per_page=1`;
-            const response = await fetch(apiUrl);
-            const data = await response.json();
-            if (data.length > 0) {
-                const commitDate = new Date(data[0].commit.author.date);
-                commitTimestamp.innerText = `Last commit: ${commitDate.toLocaleString()}`;
-            }
-        };
-
-        // Initialize the slider
-        initSlider();
+        // Initialize the slider on page load
+        window.onload = initSlider;
     </script>
 </body>
 
