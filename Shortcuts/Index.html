@@ -1,28 +1,43 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dynamic Button Display from GitHub JSONs</title>
     <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
         .button-container {
-            margin: 10px;
+            display: flex;
+            flex-wrap: wrap; /* Allows wrapping of buttons into rows */
+            justify-content: space-between; /* Even spacing between buttons */
+            margin: 20px;
         }
         .dynamic-button {
-            display: inline-block;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
             padding: 10px 20px;
-            margin: 10px;
-            font-size: 18px;
+            font-size: 15px; /* Set font size to 20px */
             color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
             text-decoration: none;
+            border-radius: 8px;
+            margin: 10px; /* Add a slight margin between buttons */
+            flex-basis: calc(33.33% - 20px); /* 3 columns, including margins */
+            box-sizing: border-box; /* Ensures padding and border are included in width calculation */
+            height: 50px; /* Set a fixed height for the buttons */
+            width: 100%; /* Set a fixed height for the buttons */            
+            transition: transform 0.2s; /* Smooth hover effect */
+        }
+        .dynamic-button:hover {
+            transform: scale(1.05); /* Slightly enlarge on hover */
         }
         .green-button {
             background-color: green;
         }
-        /* Add more color classes if needed */
+        /* Add more color classes as needed */
     </style>
 </head>
 <body>
@@ -87,7 +102,6 @@
         }
 
         // Fetch folder contents and load buttons
-        // Test URL https://ikesimba.github.io/MyUrl/Shortcuts/Index.html
         fetchFolderContents();
 
     </script>
