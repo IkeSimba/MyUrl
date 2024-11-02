@@ -122,6 +122,9 @@
             display: none;
             width: 100%;
             height: auto;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
         .commit-timestamp {
@@ -141,10 +144,6 @@
 
 <body>
     <div class="slider" id="slider"></div>
-    <video id="videoPlayer" class="video-player" controls>
-        <source src="" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
     <div class="buttons">
         <button id="prev" aria-label="Previous Slide"><i class="fas fa-arrow-left"></i></button>
         <button id="next" aria-label="Next Slide"><i class="fas fa-arrow-right"></i></button>
@@ -170,7 +169,6 @@
         const commitTimestamp = document.getElementById("commit-timestamp");
         const fileInput = document.getElementById("fileInput");
         const uploadButton = document.getElementById("uploadButton");
-        const videoPlayer = document.getElementById("videoPlayer");
         let currentIndex = 0;
 
         // GitHub repository details
@@ -184,13 +182,17 @@
         async function fetchMedia() {
             const apiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/contents/${folderPath}?ref=${branch}`;
             const response = await fetch(apiUrl);
+            if (!response.ok) {
+                console.error("Failed to fetch media:", response.statusText);
+                return;
+            }
             const data = await response.json();
-
-            // Filter and sort images and videos
             mediaFiles = data
-                .filter(file => /\.(jpg|jpeg|png|gif|mp4|webm)$/i.test(file.name))
+                .filter(file => /\.(jpg|jpeg|png|gif|mp4|webm|mov)$/i.test(file.name)) // Include .mov
                 .sort((a, b) => a.name.localeCompare(b.name))
                 .map(file => `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`);
+
+            console.log("Fetched media files:", mediaFiles); // Log constructed media URLs
 
             // Start with a random index
             currentIndex = Math.floor(Math.random() * mediaFiles.length);
@@ -212,10 +214,10 @@
                 if (index === currentIndex) slide.classList.add('current');
 
                 // Check if it's a video or an image and create the appropriate element
-                if (media.endsWith('.mp4') || media.endsWith('.webm')) {
+                if (media.endsWith('.mp4') || media.endsWith('.webm') || media.endsWith('.mov')) {
                     const video = document.createElement('video');
                     video.src = media;
-                    video.controls = false; // Initially hide controls
+                    video.controls = true; // Enable controls for the video
                     video.style.width = "100%";
                     video.style.height = "100%";
                     video.addEventListener('click', () => {
@@ -265,17 +267,20 @@
                 slide.classList.remove('current');
                 if (i === currentIndex) {
                     slide.classList.add('current');
-                    // If it's a video, show the video player; otherwise, hide it
-                    if (mediaFiles[currentIndex].endsWith('.mp4') || mediaFiles[currentIndex].endsWith('.webm')) {
-                        videoPlayer.src = mediaFiles[currentIndex];
-                        videoPlayer.style.display = 'block';
-                        videoPlayer.play();
-                    } else {
-                        videoPlayer.style.display = 'none';
+                    const video = slide.querySelector('video');
+                    if (video) {
+                        video.style.display = "block"; // Show video element if current slide
+                        video.play(); // Play video when the slide is active
+                    }
+                } else {
+                    const video = slide.querySelector('video');
+                    if (video) {
+                        video.pause(); // Pause other videos
+                        video.style.display = "none"; // Hide non-active video elements
                     }
                 }
             });
-            highlightThumbnail(currentIndex);
+            updateThumbnails();
         };
 
         const openSlide = (index) => {
@@ -285,44 +290,48 @@
 
         const highlightThumbnail = (index) => {
             const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach(thumbnail => thumbnail.classList.remove('selected'));
+            thumbnails[index].classList.add('selected');
+        };
+
+        const updateThumbnails = () => {
+            const thumbnails = document.querySelectorAll('.thumbnail');
             thumbnails.forEach((thumbnail, i) => {
-                thumbnail.classList.remove('selected');
-                if (i === index) {
-                    thumbnail.classList.add('selected');
-                }
+                thumbnail.classList.toggle('selected', i === currentIndex);
             });
         };
 
-        toggleButton.addEventListener('click', () => {
-            thumbnailContainer.style.display = thumbnailContainer.style.display === 'flex' ? 'none' : 'flex';
-        });
+        const updateCommitTimestamp = () => {
+            const timestamp = new Date().toISOString();
+            commitTimestamp.innerText = `Last updated: ${timestamp}`;
+        };
 
-        randomizeButton.addEventListener('click', () => {
+        const toggleThumbnails = () => {
+            thumbnailContainer.style.display = thumbnailContainer.style.display === 'flex' ? 'none' : 'flex';
+        };
+
+        const randomizeSlides = () => {
             currentIndex = Math.floor(Math.random() * mediaFiles.length);
             updateSlider();
-        });
+        };
+
+        const uploadFiles = () => {
+            const files = fileInput.files;
+            if (files.length > 0) {
+                // Handle file uploads here
+                console.log("Files ready for upload:", files);
+                // Logic for uploading files to GitHub goes here
+            }
+        };
 
         nextButton.addEventListener('click', nextSlide);
         prevButton.addEventListener('click', prevSlide);
+        toggleButton.addEventListener('click', toggleThumbnails);
+        randomizeButton.addEventListener('click', randomizeSlides);
+        uploadButton.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', uploadFiles);
 
-        async function updateCommitTimestamp() {
-            const commitsApiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/commits?path=${folderPath}&per_page=1`;
-            const response = await fetch(commitsApiUrl);
-            const data = await response.json();
-
-            if (data.length > 0) {
-                const lastCommit = new Date(data[0].commit.committer.date);
-                commitTimestamp.innerText = `Last updated: ${lastCommit.toLocaleString()}`;
-            }
-        }
-
-        // Upload button functionality
-        uploadButton.addEventListener("click", () => {
-            window.open(`https://github.com/${repoUsername}/${repoName}/upload/${branch}/${folderPath}`, '_blank');
-        });
-
-        // Initialize the slider on page load
-        window.onload = initSlider;
+        initSlider(); // Start the slider initialization
     </script>
 </body>
 
