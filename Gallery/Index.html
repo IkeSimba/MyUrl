@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <title>Dynamic Image and Video Slider</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <title>Dynamic Image and Video Slider from GitHub</title>
+    <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css'>
     <style>
         @import url("https://fonts.googleapis.com/css2?family=Lexend:wght@400;700&display=swap");
 
@@ -43,12 +44,12 @@
         .buttons {
             position: absolute;
             top: 50%;
-            transform: translateY(-50%);
-            z-index: 10;
-            width: 100%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
-            justify-content: space-between; /* Aligns buttons to left and right */
-            padding: 0 20px; /* Add padding to the sides */
+            justify-content: space-between;
+            width: 100%;
+            padding: 0 20px;
         }
 
         .buttons button {
@@ -56,53 +57,19 @@
             background-color: transparent;
             color: #e5ebf3;
             cursor: pointer;
-            width: 50px; /* Set width for circular shape */
-            height: 50px; /* Set height for circular shape */
-            border-radius: 50%; /* Make circular */
-            display: flex;
-            align-items: center; /* Center icon vertically */
-            justify-content: center; /* Center icon horizontally */
+            padding: 13px 15px;
+            border-radius: 50%;
+            outline: none;
             margin: 0 5px;
-            opacity: 0.3;
-            transition: background-color 0.3s, color 0.3s, opacity 0.3s;
         }
 
         .buttons button:hover {
             background-color: #e5ebf3;
             color: #362a2b;
-            opacity: 0.5;
-        }
-
-        .button-container {
-            position: absolute;
-            bottom: 80px; /* Position the additional buttons above the main buttons */
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            justify-content: center;
-            z-index: 10;
-        }
-
-        .button-container button {
-            border: 2px solid #e5ebf3;
-            background-color: transparent;
-            color: #e5ebf3;
-            cursor: pointer;
-            padding: 10px 15px;
-            border-radius: 50%;
-            margin: 0 5px;
-            opacity: 0.3;
-            transition: background-color 0.3s, color 0.3s, opacity 0.3s;
-        }
-
-        .button-container button:hover {
-            background-color: #e5ebf3;
-            color: #362a2b;
-            opacity: 0.5;
         }
 
         .thumbnail-container {
-            display: none; /* Change to flex if you want it to show initially */
+            display: none;
             flex-wrap: wrap;
             justify-content: center;
             width: 100%;
@@ -115,13 +82,46 @@
             margin: 5px;
             cursor: pointer;
             border: 2px solid transparent;
-            transition: border 0.3s ease, opacity 0.3s;
+            transition: border 0.3s ease;
             opacity: 0.75;
         }
 
         .thumbnail.selected {
             border: 2px solid #e5ebf3;
             opacity: 1;
+        }
+
+        .button-container {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .button-container button {
+            border: 2px solid #e5ebf3;
+            background-color: transparent;
+            color: #e5ebf3;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 5px;
+            opacity: 0.3;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .button-container button:hover {
+            background-color: #e5ebf3;
+            color: #362a2b;
+            opacity: 0.5;
+        }
+
+        .video-player {
+            display: none;
+            width: 100%;
+            height: auto;
         }
 
         .commit-timestamp {
@@ -136,49 +136,15 @@
             opacity: 0.3;
             white-space: nowrap;
         }
-
-        .video-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-        }
-
-        video {
-            width: 100%;
-            height: calc(100% - 40px); /* Leave space for controls */
-            position: absolute;
-            top: 40px; /* Space for controls above */
-            left: 0;
-        }
-
-        .video-controls {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            padding: 5px;
-            z-index: 10;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-        }
-
-        .video-controls button {
-            background: transparent;
-            border: none;
-            color: #e5ebf3;
-            cursor: pointer;
-        }
-
-        .video-controls button:hover {
-            color: #fff;
-        }
     </style>
 </head>
 
 <body>
     <div class="slider" id="slider"></div>
+    <video id="videoPlayer" class="video-player" controls>
+        <source src="" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
     <div class="buttons">
         <button id="prev" aria-label="Previous Slide"><i class="fas fa-arrow-left"></i></button>
         <button id="next" aria-label="Next Slide"><i class="fas fa-arrow-right"></i></button>
@@ -187,6 +153,7 @@
     <div class="button-container">
         <button class="toggle-thumbnails" id="toggle-button">🗃️</button>
         <button class="randomize-button" id="randomize-button">🎉</button>
+        <input type="file" id="fileInput" accept="image/*" multiple style="display: none;" />
         <button id="uploadButton">📸</button>
     </div>
 
@@ -194,155 +161,169 @@
     <div class="commit-timestamp" id="commit-timestamp"></div>
 
     <script>
-        (function() {
-            const slidesContainer = document.getElementById("slider");
-            const nextButton = document.getElementById("next");
-            const prevButton = document.getElementById("prev");
-            const toggleButton = document.getElementById("toggle-button");
-            const randomizeButton = document.getElementById("randomize-button");
-            const thumbnailContainer = document.getElementById("thumbnail-container");
-            const commitTimestamp = document.getElementById("commit-timestamp");
-            const uploadButton = document.getElementById("uploadButton");
-            let currentIndex = 0;
-            let originalFiles = [];
+        const slidesContainer = document.getElementById("slider");
+        const nextButton = document.getElementById("next");
+        const prevButton = document.getElementById("prev");
+        const toggleButton = document.getElementById("toggle-button");
+        const randomizeButton = document.getElementById("randomize-button");
+        const thumbnailContainer = document.getElementById("thumbnail-container");
+        const commitTimestamp = document.getElementById("commit-timestamp");
+        const fileInput = document.getElementById("fileInput");
+        const uploadButton = document.getElementById("uploadButton");
+        const videoPlayer = document.getElementById("videoPlayer");
+        let currentIndex = 0;
 
-            const repoUsername = "IkeSimba";
-            const repoName = "MyUrl";
-            const branch = "V0";
-            const folderPath = "Gallery";
+        // GitHub repository details
+        const repoUsername = "IkeSimba"; // Your GitHub username
+        const repoName = "MyUrl";         // Your repository name
+        const branch = "V0";               // Your branch name
+        const folderPath = "Gallery";      // Path to your images folder
 
-            async function fetchFiles() {
-                const apiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/contents/${folderPath}?ref=${branch}`;
-                const response = await fetch(apiUrl);
-                const data = await response.json();
+        let mediaFiles = []; // To store all media URLs (images and videos)
 
-                originalFiles = data
-                    .filter(file => /\.(jpg|jpeg|png|gif|mp4|mov)$/i.test(file.name))
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map(file => `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`);
+        async function fetchMedia() {
+            const apiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/contents/${folderPath}?ref=${branch}`;
+            const response = await fetch(apiUrl);
+            const data = await response.json();
 
-                currentIndex = Math.floor(Math.random() * originalFiles.length);
-                updateSlider();
-                updateCommitTimestamp();
-            }
+            // Filter and sort images and videos
+            mediaFiles = data
+                .filter(file => /\.(jpg|jpeg|png|gif|mp4|webm)$/i.test(file.name))
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(file => `https://raw.githubusercontent.com/${repoUsername}/${repoName}/${branch}/${folderPath}/${file.name}`);
 
-            async function initSlider() {
-                await fetchFiles();
-                createSlides();
-            }
+            // Start with a random index
+            currentIndex = Math.floor(Math.random() * mediaFiles.length);
+            updateSlider();
+            updateCommitTimestamp();
+        }
 
-            function createSlides() {
-                slidesContainer.innerHTML = '';
-                thumbnailContainer.innerHTML = '';
+        async function initSlider() {
+            await fetchMedia();
+            createSlides();
+            updateSlider();
+        }
 
-                originalFiles.forEach((file, index) => {
-                    const slide = document.createElement('div');
-                    slide.className = 'slide';
-                    if (index === currentIndex) slide.classList.add('current');
+        function createSlides() {
+            slidesContainer.innerHTML = ''; // Clear existing slides
+            mediaFiles.forEach((media, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'slide';
+                if (index === currentIndex) slide.classList.add('current');
 
-                    if (file.endsWith('.mp4') || file.endsWith('.mov')) {
-                        createVideoSlide(slide, file);
-                    } else {
-                        createImageSlide(slide, file);
-                    }
+                // Check if it's a video or an image and create the appropriate element
+                if (media.endsWith('.mp4') || media.endsWith('.webm')) {
+                    const video = document.createElement('video');
+                    video.src = media;
+                    video.controls = false; // Initially hide controls
+                    video.style.width = "100%";
+                    video.style.height = "100%";
+                    video.addEventListener('click', () => {
+                        video.paused ? video.play() : video.pause();
+                    });
+                    slide.appendChild(video);
+                } else {
+                    slide.style.backgroundImage = `url("${media}")`;
+                    slide.style.backgroundRepeat = "no-repeat";
+                    slide.style.backgroundPosition = "center";
+                    slide.style.backgroundSize = "contain";
+                }
 
-                    slidesContainer.appendChild(slide);
-                });
+                slidesContainer.appendChild(slide);
 
-                updateThumbnails();
-            }
-
-            function createVideoSlide(slide, file) {
-                const videoContainer = document.createElement('div');
-                videoContainer.className = 'video-container';
-
-                const video = document.createElement('video');
-                video.src = file;
-                video.controls = true; // Enable default video controls
-                videoContainer.appendChild(video);
-                slide.appendChild(videoContainer);
-
-                const thumbnail = createThumbnailCanvas(video);
-                thumbnailContainer.appendChild(thumbnail);
-            }
-
-            function createImageSlide(slide, file) {
-                slide.style.backgroundImage = `url("${file}")`;
-                slide.style.backgroundRepeat = "no-repeat";
-                slide.style.backgroundPosition = "center";
-                slide.style.backgroundSize = "contain";
-
+                // Create thumbnail for each media file
                 const thumbnail = document.createElement('img');
-                thumbnail.src = file;
+                thumbnail.src = media;
                 thumbnail.className = 'thumbnail';
-                thumbnailContainer.appendChild(thumbnail);
-            }
-
-            function createThumbnailCanvas(video) {
-                const thumbnail = document.createElement('canvas');
-                const context = thumbnail.getContext('2d');
-                thumbnail.width = 100;
-                thumbnail.height = 100;
-                thumbnail.className = 'thumbnail';
-                video.addEventListener('loadeddata', () => {
-                    context.drawImage(video, 0, 0, thumbnail.width, thumbnail.height);
-                });
                 thumbnail.addEventListener('click', () => {
-                    currentIndex = Array.from(thumbnailContainer.children).indexOf(thumbnail);
-                    updateSlider();
+                    openSlide(index);
+                    highlightThumbnail(index);
                 });
-                return thumbnail;
-            }
-
-            function nextSlide() {
-                currentIndex = (currentIndex + 1) % originalFiles.length;
-                updateSlider();
-            }
-
-            function prevSlide() {
-                currentIndex = (currentIndex - 1 + originalFiles.length) % originalFiles.length;
-                updateSlider();
-            }
-
-            function updateSlider() {
-                const slides = document.querySelectorAll('.slide');
-                slides.forEach((slide, index) => {
-                    slide.classList.remove('current');
-                    if (index === currentIndex) slide.classList.add('current');
-                });
-                highlightThumbnail();
-            }
-
-            function highlightThumbnail() {
-                const thumbnails = document.querySelectorAll('.thumbnail');
-                thumbnails.forEach((thumb, index) => {
-                    thumb.classList.toggle('selected', index === currentIndex);
-                });
-            }
-
-            function randomizeSlide() {
-                currentIndex = Math.floor(Math.random() * originalFiles.length);
-                updateSlider();
-            }
-
-            function toggleThumbnails() {
-                thumbnailContainer.style.display = thumbnailContainer.style.display === 'none' ? 'flex' : 'none';
-            }
-
-            function updateCommitTimestamp() {
-                commitTimestamp.textContent = `Last updated: ${new Date().toLocaleString()}`;
-            }
-
-            nextButton.addEventListener("click", nextSlide);
-            prevButton.addEventListener("click", prevSlide);
-            toggleButton.addEventListener("click", toggleThumbnails);
-            randomizeButton.addEventListener("click", randomizeSlide);
-            uploadButton.addEventListener("click", () => {
-                // Implement upload functionality here
+                thumbnailContainer.appendChild(thumbnail);
             });
+        }
 
-            initSlider();
-        })();
+        const nextSlide = () => {
+            currentIndex++;
+            if (currentIndex >= mediaFiles.length) {
+                currentIndex = 0;
+            }
+            updateSlider();
+        };
+
+        const prevSlide = () => {
+            currentIndex--;
+            if (currentIndex < 0) {
+                currentIndex = mediaFiles.length - 1;
+            }
+            updateSlider();
+        };
+
+        const updateSlider = () => {
+            const slides = document.querySelectorAll('.slide');
+            slides.forEach((slide, i) => {
+                slide.classList.remove('current');
+                if (i === currentIndex) {
+                    slide.classList.add('current');
+                    // If it's a video, show the video player; otherwise, hide it
+                    if (mediaFiles[currentIndex].endsWith('.mp4') || mediaFiles[currentIndex].endsWith('.webm')) {
+                        videoPlayer.src = mediaFiles[currentIndex];
+                        videoPlayer.style.display = 'block';
+                        videoPlayer.play();
+                    } else {
+                        videoPlayer.style.display = 'none';
+                    }
+                }
+            });
+            highlightThumbnail(currentIndex);
+        };
+
+        const openSlide = (index) => {
+            currentIndex = index;
+            updateSlider();
+        };
+
+        const highlightThumbnail = (index) => {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach((thumbnail, i) => {
+                thumbnail.classList.remove('selected');
+                if (i === index) {
+                    thumbnail.classList.add('selected');
+                }
+            });
+        };
+
+        toggleButton.addEventListener('click', () => {
+            thumbnailContainer.style.display = thumbnailContainer.style.display === 'flex' ? 'none' : 'flex';
+        });
+
+        randomizeButton.addEventListener('click', () => {
+            currentIndex = Math.floor(Math.random() * mediaFiles.length);
+            updateSlider();
+        });
+
+        nextButton.addEventListener('click', nextSlide);
+        prevButton.addEventListener('click', prevSlide);
+
+        async function updateCommitTimestamp() {
+            const commitsApiUrl = `https://api.github.com/repos/${repoUsername}/${repoName}/commits?path=${folderPath}&per_page=1`;
+            const response = await fetch(commitsApiUrl);
+            const data = await response.json();
+
+            if (data.length > 0) {
+                const lastCommit = new Date(data[0].commit.committer.date);
+                commitTimestamp.innerText = `Last updated: ${lastCommit.toLocaleString()}`;
+            }
+        }
+
+        // Upload button functionality
+        uploadButton.addEventListener("click", () => {
+            window.open(`https://github.com/${repoUsername}/${repoName}/upload/${branch}/${folderPath}`, '_blank');
+        });
+
+        // Initialize the slider on page load
+        window.onload = initSlider;
     </script>
 </body>
+
 </html>
