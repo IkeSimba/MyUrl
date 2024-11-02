@@ -137,7 +137,6 @@
             white-space: nowrap;
         }
 
-        /* New styles for video controls positioning */
         .video-container {
             position: relative;
             width: 100%;
@@ -160,6 +159,20 @@
             background: rgba(0, 0, 0, 0.5);
             padding: 5px;
             z-index: 10;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        .video-controls button {
+            background: transparent;
+            border: none;
+            color: #e5ebf3;
+            cursor: pointer;
+        }
+
+        .video-controls button:hover {
+            color: #fff;
         }
     </style>
 </head>
@@ -245,18 +258,7 @@
 
                 const video = document.createElement('video');
                 video.src = file;
-                video.controls = true;
-                video.preload = 'metadata'; // Optional for performance
-
-                // Event listener to play/pause video on click
-                slide.addEventListener('click', () => {
-                    if (video.paused) {
-                        video.play();
-                    } else {
-                        video.pause();
-                    }
-                });
-
+                video.controls = true; // Enable default video controls
                 videoContainer.appendChild(video);
                 slide.appendChild(videoContainer);
 
@@ -292,68 +294,51 @@
                 return thumbnail;
             }
 
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % originalFiles.length;
+                updateSlider();
+            }
+
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + originalFiles.length) % originalFiles.length;
+                updateSlider();
+            }
+
             function updateSlider() {
                 const slides = document.querySelectorAll('.slide');
                 slides.forEach((slide, index) => {
                     slide.classList.remove('current');
-                    const video = slide.querySelector('video');
-                    if (video) video.pause(); // Pause video on slide change
-                    if (index === currentIndex) {
-                        slide.classList.add('current');
-                        if (video) {
-                            video.currentTime = 0; // Optional: Reset video time
-                            video.play(); // Play the current video
-                        }
-                    }
+                    if (index === currentIndex) slide.classList.add('current');
                 });
                 highlightThumbnail();
             }
 
             function highlightThumbnail() {
-                const thumbnails = thumbnailContainer.querySelectorAll('.thumbnail');
-                thumbnails.forEach((thumbnail, index) => {
-                    thumbnail.classList.toggle('selected', index === currentIndex);
+                const thumbnails = document.querySelectorAll('.thumbnail');
+                thumbnails.forEach((thumb, index) => {
+                    thumb.classList.toggle('selected', index === currentIndex);
                 });
             }
 
-            function updateCommitTimestamp() {
-                const commitDate = new Date();
-                commitTimestamp.innerText = `Last updated: ${commitDate.toLocaleString()}`;
-            }
-
-            nextButton.addEventListener("click", () => {
-                currentIndex = (currentIndex + 1) % originalFiles.length;
-                updateSlider();
-            });
-
-            prevButton.addEventListener("click", () => {
-                currentIndex = (currentIndex - 1 + originalFiles.length) % originalFiles.length;
-                updateSlider();
-            });
-
-            toggleButton.addEventListener("click", () => {
-                thumbnailContainer.style.display = thumbnailContainer.style.display === 'none' ? 'flex' : 'none';
-            });
-
-            randomizeButton.addEventListener("click", () => {
+            function randomizeSlide() {
                 currentIndex = Math.floor(Math.random() * originalFiles.length);
                 updateSlider();
-            });
+            }
 
+            function toggleThumbnails() {
+                thumbnailContainer.style.display = thumbnailContainer.style.display === 'none' ? 'flex' : 'none';
+            }
+
+            function updateCommitTimestamp() {
+                commitTimestamp.textContent = `Last updated: ${new Date().toLocaleString()}`;
+            }
+
+            nextButton.addEventListener("click", nextSlide);
+            prevButton.addEventListener("click", prevSlide);
+            toggleButton.addEventListener("click", toggleThumbnails);
+            randomizeButton.addEventListener("click", randomizeSlide);
             uploadButton.addEventListener("click", () => {
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.accept = 'image/*,video/*';
-                fileInput.onchange = async (event) => {
-                    const file = event.target.files[0];
-                    const formData = new FormData();
-                    formData.append('file', file);
-
-                    // Add the upload logic here
-
-                    await fetchFiles(); // Refresh the file list after upload
-                };
-                fileInput.click();
+                // Implement upload functionality here
             });
 
             initSlider();
