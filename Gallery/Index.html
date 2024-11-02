@@ -260,7 +260,9 @@
                     const video = document.createElement('video');
                     video.src = media;
                     video.muted = true; // Automute
-                    video.controls = true; // Enable controls for the video
+                    video.controls = false; // Enable controls for the video
+                        video.autoplay = true; // Enable autoplay
+                            video.playsInline = true; // Required for mobile autoplay
                     slide.appendChild(video);
                 } else {
                     const img = document.createElement('img'); // Create image element
@@ -283,16 +285,25 @@
         }
 
         function updateSlider() {
-            const slides = document.querySelectorAll('.slide');
-            slides.forEach((slide, index) => {
-                slide.classList.remove('current');
-                if (index === currentIndex) {
-                    slide.classList.add('current');
-                }
-            });
-            updateVideoControls();
-            updateThumbnails();
+    const slides = document.querySelectorAll('.slide');
+    slides.forEach((slide, index) => {
+        slide.classList.remove('current');
+        if (index === currentIndex) {
+            slide.classList.add('current');
+            const video = slide.querySelector('video');
+            if (video) {
+                video.play(); // Start playing the video when it becomes the current slide
+            }
+        } else {
+            const video = slide.querySelector('video');
+            if (video) {
+                video.pause(); // Pause the video if it's not the current slide
+            }
         }
+    });
+    updateVideoControls();
+    updateThumbnails();
+}
 
         function updateThumbnails() {
             const thumbnails = document.querySelectorAll('.thumbnail');
@@ -360,9 +371,10 @@ function updateVideoControls() {
             updateSlider();
         });
 
-        uploadButton.addEventListener("click", () => {
-            fileInput.click(); // Trigger file input click
-        });
+       uploadButton.addEventListener("click", () => {
+    // Redirects to the GitHub upload page for the specified directory
+    window.open('https://github.com/IkeSimba/MyUrl/upload/V0/Gallery', '_blank');
+});
 
         fileInput.addEventListener("change", (event) => {
             const files = Array.from(event.target.files);
