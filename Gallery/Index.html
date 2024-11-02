@@ -118,13 +118,15 @@
             opacity: 0.5;
         }
 
-        .video-player {
-            display: none;
-            width: 100%;
-            height: auto;
+        .video-controls {
             position: absolute;
-            top: 0;
-            left: 0;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            justify-content: center;
+            z-index: 10;
+            width: 100%;
         }
 
         .commit-timestamp {
@@ -143,6 +145,10 @@
 </head>
 
 <body>
+    <div class="video-controls" id="video-controls">
+        <!-- Video controls will be injected here -->
+    </div>
+
     <div class="slider" id="slider"></div>
     <div class="buttons">
         <button id="prev" aria-label="Previous Slide"><i class="fas fa-arrow-left"></i></button>
@@ -161,6 +167,7 @@
 
     <script>
         const slidesContainer = document.getElementById("slider");
+        const videoControlsContainer = document.getElementById("video-controls");
         const nextButton = document.getElementById("next");
         const prevButton = document.getElementById("prev");
         const toggleButton = document.getElementById("toggle-button");
@@ -170,6 +177,8 @@
         const fileInput = document.getElementById("fileInput");
         const uploadButton = document.getElementById("uploadButton");
         let currentIndex = 0;
+        const intervalTime = 20000; // Time in milliseconds (20 seconds)
+        let slideInterval; // Variable to hold the interval
 
         // GitHub repository details
         const repoUsername = "IkeSimba"; // Your GitHub username
@@ -198,6 +207,7 @@
             currentIndex = Math.floor(Math.random() * mediaFiles.length);
             updateSlider();
             updateCommitTimestamp();
+            startSlideShow(); // Start the automatic slideshow
         }
 
         async function initSlider() {
@@ -213,16 +223,12 @@
                 slide.className = 'slide';
                 if (index === currentIndex) slide.classList.add('current');
 
-                // Check if it's a video or an image and create the appropriate element
+                // Create video element only if the media is a video
                 if (media.endsWith('.mp4') || media.endsWith('.webm') || media.endsWith('.mov')) {
                     const video = document.createElement('video');
                     video.src = media;
                     video.controls = true; // Enable controls for the video
-                    video.style.width = "100%";
-                    video.style.height = "100%";
-                    video.addEventListener('click', () => {
-                        video.paused ? video.play() : video.pause();
-                    });
+                    video.style.display = 'block'; // Ensure video is block-level
                     slide.appendChild(video);
                 } else {
                     slide.style.backgroundImage = `url("${media}")`;
@@ -263,75 +269,86 @@
 
         const updateSlider = () => {
             const slides = document.querySelectorAll('.slide');
-            slides.forEach((slide, i) => {
+            slides.forEach((slide, index) => {
                 slide.classList.remove('current');
-                if (i === currentIndex) {
+                if (index === currentIndex) {
                     slide.classList.add('current');
-                    const video = slide.querySelector('video');
-                    if (video) {
-                        video.style.display = "block"; // Show video element if current slide
-                        video.play(); // Play video when the slide is active
-                    }
-                } else {
-                    const video = slide.querySelector('video');
-                    if (video) {
-                        video.pause(); // Pause other videos
-                        video.style.display = "none"; // Hide non-active video elements
-                    }
+                    updateVideoControls(mediaFiles[currentIndex]);
                 }
             });
-            updateThumbnails();
+            highlightThumbnail(currentIndex);
+            updateCommitTimestamp();
+        };
+
+        const highlightThumbnail = (index) => {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            thumbnails.forEach((thumb, i) => {
+                thumb.classList.remove('selected');
+                if (i === index) {
+                    thumb.classList.add('selected');
+                }
+            });
         };
 
         const openSlide = (index) => {
             currentIndex = index;
             updateSlider();
+            resetSlideShow(); // Reset slideshow timer when user navigates
         };
 
-        const highlightThumbnail = (index) => {
-            const thumbnails = document.querySelectorAll('.thumbnail');
-            thumbnails.forEach(thumbnail => thumbnail.classList.remove('selected'));
-            thumbnails[index].classList.add('selected');
-        };
-
-        const updateThumbnails = () => {
-            const thumbnails = document.querySelectorAll('.thumbnail');
-            thumbnails.forEach((thumbnail, i) => {
-                thumbnail.classList.toggle('selected', i === currentIndex);
-            });
-        };
-
-        const updateCommitTimestamp = () => {
-            const timestamp = new Date().toISOString();
-            commitTimestamp.innerText = `Last updated: ${timestamp}`;
-        };
-
-        const toggleThumbnails = () => {
-            thumbnailContainer.style.display = thumbnailContainer.style.display === 'flex' ? 'none' : 'flex';
-        };
-
-        const randomizeSlides = () => {
-            currentIndex = Math.floor(Math.random() * mediaFiles.length);
-            updateSlider();
-        };
-
-        const uploadFiles = () => {
-            const files = fileInput.files;
-            if (files.length > 0) {
-                // Handle file uploads here
-                console.log("Files ready for upload:", files);
-                // Logic for uploading files to GitHub goes here
+        const updateVideoControls = (media) => {
+            videoControlsContainer.innerHTML = ''; // Clear existing controls
+            if (media.endsWith('.mp4') || media.endsWith('.webm') || media.endsWith('.mov')) {
+                const video = document.createElement('video');
+                video.src = media;
+                video.controls = true;
+                video.style.width = '100%'; // Optional: Adjust width to your preference
+                videoControlsContainer.appendChild(video);
             }
         };
 
-        nextButton.addEventListener('click', nextSlide);
-        prevButton.addEventListener('click', prevSlide);
-        toggleButton.addEventListener('click', toggleThumbnails);
-        randomizeButton.addEventListener('click', randomizeSlides);
-        uploadButton.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', uploadFiles);
+        const updateCommitTimestamp = () => {
+            const date = new Date();
+            commitTimestamp.innerText = `Last updated: ${date.toLocaleString()}`;
+        };
 
-        initSlider(); // Start the slider initialization
+        const startSlideShow = () => {
+            slideInterval = setInterval(nextSlide, intervalTime); // Start the slideshow
+        };
+
+        const resetSlideShow = () => {
+            clearInterval(slideInterval); // Stop the current interval
+            startSlideShow(); // Start a new one
+        };
+
+        toggleButton.addEventListener('click', () => {
+            const thumbnailsVisible = thumbnailContainer.style.display === 'flex';
+            thumbnailContainer.style.display = thumbnailsVisible ? 'none' : 'flex';
+        });
+
+        randomizeButton.addEventListener('click', () => {
+            currentIndex = Math.floor(Math.random() * mediaFiles.length);
+            updateSlider();
+            resetSlideShow(); // Reset slideshow timer when user randomizes
+        });
+
+        nextButton.addEventListener('click', () => {
+            nextSlide();
+            resetSlideShow(); // Reset slideshow timer when user clicks next
+        });
+
+        prevButton.addEventListener('click', () => {
+            prevSlide();
+            resetSlideShow(); // Reset slideshow timer when user clicks prev
+        });
+
+// Handle file uploads
+uploadButton.addEventListener("click", () => {
+    window.open('https://github.com/IkeSimba/MyUrl/upload/V0/Gallery', '_blank');
+});
+
+        // Initialize the slider on page load
+        initSlider();
     </script>
 </body>
 
