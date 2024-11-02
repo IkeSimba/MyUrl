@@ -118,6 +118,23 @@
             color: #362a2b;
             opacity: 0.5;
         }
+ .video-controls button {
+    border: 2px solid #e5ebf3;
+    background-color: transparent;
+    color: #e5ebf3;
+    cursor: pointer;
+    padding: 10px 15px;
+    border-radius: 5px;
+    opacity: 0.3; /* Same opacity as bottom buttons */
+    transition: background-color 0.3s, color 0.3s;
+    margin: 0 5px; /* Same margin as bottom buttons */
+}
+
+.video-controls button:hover {
+    background-color: #e5ebf3;
+    color: #362a2b;
+    opacity: 0.5; /* Same hover opacity as bottom buttons */
+}
 
         .video-controls {
             position: absolute;
@@ -242,7 +259,8 @@
                 if (media.endsWith('.mp4') || media.endsWith('.webm') || media.endsWith('.mov')) {
                     const video = document.createElement('video');
                     video.src = media;
-                    // video.controls = true; // Enable controls for the video
+                    video.muted = true; // Automute
+                    //video.controls = true; // Enable controls for the video
                     slide.appendChild(video);
                 } else {
                     const img = document.createElement('img'); // Create image element
@@ -286,26 +304,35 @@
             });
         }
 
-        function updateVideoControls() {
-            videoControlsContainer.innerHTML = ''; // Clear previous controls
-            if (mediaFiles[currentIndex].endsWith('.mp4') || mediaFiles[currentIndex].endsWith('.webm') || mediaFiles[currentIndex].endsWith('.mov')) {
-                const video = document.querySelector('.slide.current video');
-                if (video) {
-                    // Create play/pause button
-                    const playPauseButton = document.createElement('button');
-                    playPauseButton.textContent = video.paused ? '▶' : '❚❚';
-                    playPauseButton.onclick = () => {
-                        if (video.paused) {
-                            video.play();
-                        } else {
-                            video.pause();
-                        }
-                        playPauseButton.textContent = video.paused ? '▶' : '❚❚';
-                    };
-                    videoControlsContainer.appendChild(playPauseButton);
+function updateVideoControls() {
+    videoControlsContainer.innerHTML = ''; // Clear previous controls
+    if (mediaFiles[currentIndex].endsWith('.mp4') || mediaFiles[currentIndex].endsWith('.webm') || mediaFiles[currentIndex].endsWith('.mov')) {
+        const video = document.querySelector('.slide.current video');
+        if (video) {
+            // Create play/pause button
+            const playPauseButton = document.createElement('button');
+            playPauseButton.textContent = video.paused ? '⏯️' : '⏯️';
+            playPauseButton.onclick = () => {
+                if (video.paused) {
+                    video.play();
+                } else {
+                    video.pause();
                 }
-            }
+                playPauseButton.textContent = video.paused ? '⏯️' : '⏯️';
+            };
+            videoControlsContainer.appendChild(playPauseButton); // Add play button to controls
+            
+            // Create mute/unmute button
+            const muteUnmuteButton = document.createElement('button');
+            muteUnmuteButton.textContent = video.muted ? '🔇' : '🔊';
+            muteUnmuteButton.onclick = () => {
+                video.muted = !video.muted; // Toggle mute
+                muteUnmuteButton.textContent = video.muted ? '🔇' : '🔊';
+            };
+            videoControlsContainer.appendChild(muteUnmuteButton); // Add mute button to controls
         }
+    }
+}
 
         function startSlideShow() {
             slideInterval = setInterval(() => {
